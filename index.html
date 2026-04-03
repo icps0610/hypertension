@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>護眼模式：血壓紀錄系統</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #2ea043;
+            --danger-color: #f85149;
+            --secondary-color: #30363d;
+            --export-color: #1f6feb;
+            --import-color: #a371f7;
+            --info-color: #58a6ff;
+            
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --text-color: #c9d1d9;
+            --text-secondary: #8b949e;
+            --border-color: #30363d;
+            
+            --radius-main: 16px;
+            --radius-sub: 8px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            padding: 24px;
+            gap: 24px;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .main-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            gap: 24px;
+        }
+
+        .data-section {
+            flex: 1 1 70%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            height: 100%;
+        }
+
+        .table-card {
+            background-color: var(--card-bg);
+            border-radius: var(--radius-main);
+            padding: 24px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border-color);
+        }
+
+        .table-card h2 {
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .table-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sub);
+            background-color: var(--bg-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            background-color: #0d1117;
+            z-index: 10;
+        }
+
+        th, td {
+            border-bottom: 1px solid var(--border-color);
+            padding: 14px 10px;
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .record-row {
+            transition: var(--transition);
+        }
+
+        .record-row:hover {
+            filter: brightness(1.2);
+        }
+
+        .day-color-0 {
+            background-color: transparent;
+        }
+        
+        .day-color-1 {
+            background-color: #1c2128;
+        }
+
+        .text-high {
+            color: var(--danger-color);
+            font-weight: 700;
+        }
+
+        td.sys-val, td.dia-val, td.hr-val {
+            text-align: right;
+            padding-right: 20px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+        }
+
+        td.status-val {
+            text-align: left;
+            padding-left: 20px;
+        }
+
+        .summary-card {
+            background-color: var(--card-bg);
+            border-radius: var(--radius-main);
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+        
+        .summary-card:hover {
+            border-color: var(--info-color);
+            background-color: #21262d;
+        }
+
+        .summary-card-title {
+            font-weight: 700;
+            color: var(--info-color);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .summary-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .summary-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-color);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .summary-unit {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .input-section {
+            flex: 1 1 30%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            height: 100%;
+        }
+
+        .input-card {
+            background-color: var(--card-bg);
+            border-radius: var(--radius-main);
+            padding: 24px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .input-card h2 {
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .form-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 18px;
+            font-size: 1.1rem;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sub);
+            transition: var(--transition);
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 1px var(--primary-color);
+        }
+
+        .form-input::placeholder {
+            color: #484f58;
+        }
+
+        .input-unit {
+            position: absolute;
+            right: 18px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            pointer-events: none;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+        }
+
+        button.btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-radius: var(--radius-sub);
+            color: #ffffff;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        button.btn:hover {
+            transform: translateY(-2px);
+        }
+
+        button.btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-submit { background-color: #238636; border-color: rgba(240, 246, 252, 0.1); }
+        .btn-submit:hover { background-color: #2ea043; }
+
+        .btn-delete { background-color: #da3633; border-color: rgba(240, 246, 252, 0.1); }
+        .btn-delete:hover { background-color: #f85149; }
+
+        .btn-export { background-color: var(--export-color); border-color: rgba(240, 246, 252, 0.1); flex: 1; }
+        .btn-export:hover { background-color: #388bfd; }
+
+        .btn-import { background-color: var(--import-color); border-color: rgba(240, 246, 252, 0.1); flex: 1; }
+        .btn-import:hover { background-color: #b392f0; }
+
+        .table-wrapper::-webkit-scrollbar { width: 8px; }
+        .table-wrapper::-webkit-scrollbar-track { background: var(--bg-color); border-radius: 10px; }
+        .table-wrapper::-webkit-scrollbar-thumb { background: #30363d; border-radius: 10px; }
+        .table-wrapper::-webkit-scrollbar-thumb:hover { background: #484f58; }
+
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <div class="data-section">
+            <div class="table-card">
+                <h2><i class="fas fa-history"></i> 血壓紀錄</h2>
+                <div class="table-wrapper">
+                    <table id="dataTable">
+                        <thead>
+                            <tr>
+                                <th>年</th>
+                                <th>月</th>
+                                <th>日</th>
+                                <th>高 (SYS)</th>
+                                <th>低 (DIA)</th>
+                                <th>心跳 (HR)</th>
+                                <th>時間段</th>
+                                <th>狀態</th>
+                                <th>完整紀錄時間</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordBody">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="summary-card" id="latestRecordCard">
+                <div class="summary-card-title"><i class="fas fa-clock"></i> 最新紀錄</div>
+                <div class="summary-item">
+                    <div class="summary-label">收縮壓 (高)</div>
+                    <div class="summary-value" id="latestSysVal">--</div>
+                    <div class="summary-unit">mmHg</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">舒張壓 (低)</div>
+                    <div class="summary-value" id="latestDiaVal">--</div>
+                    <div class="summary-unit">mmHg</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">心跳</div>
+                    <div class="summary-value" id="latestHrVal">--</div>
+                    <div class="summary-unit">bpm</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-section">
+            <div class="input-card">
+                <h2><i class="fas fa-notes-medical"></i> 新增量測</h2>
+                <div class="form-field">
+                    <label class="form-label">收縮壓 (高)</label>
+                    <div class="form-input-wrapper">
+                        <input type="number" id="sysInput" class="form-input" placeholder="119" autofocus>
+                        <span class="input-unit">mmHg</span>
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label class="form-label">舒張壓 (低)</label>
+                    <div class="form-input-wrapper">
+                        <input type="number" id="diaInput" class="form-input" placeholder="81">
+                        <span class="input-unit">mmHg</span>
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label class="form-label">心跳</label>
+                    <div class="form-input-wrapper">
+                        <input type="number" id="hrInput" class="form-input" placeholder="62">
+                        <span class="input-unit">bpm</span>
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label class="form-label">備註狀態</label>
+                    <div class="form-input-wrapper">
+                        <input type="text" id="statusInput" class="form-input" placeholder="無" value="無">
+                        <i class="fas fa-pen input-unit" style="pointer-events: auto; right: 18px; color: #8b949e; font-size: 0.8rem;"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-card" style="margin-top: auto;">
+                <div class="btn-group">
+                    <button class="btn btn-submit" onclick="addRecord()">
+                        <i class="fas fa-plus"></i> 輸入並紀錄
+                    </button>
+                    <button class="btn btn-delete" onclick="deleteLatestRecord()">
+                        <i class="fas fa-trash-alt"></i> 刪除最新紀錄
+                    </button>
+                    <div class="action-row">
+                        <button class="btn btn-export" onclick="exportToCSV()">
+                            <i class="fas fa-file-export"></i> 匯出 CSV
+                        </button>
+                        <button class="btn btn-import" onclick="document.getElementById('csvFileInput').click()">
+                            <i class="fas fa-file-import"></i> 匯入 CSV
+                        </button>
+                        <input type="file" id="csvFileInput" accept=".csv" style="display: none;" onchange="importFromCSV(event)">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const HIGH_SYS_THRESHOLD = 140;
+        const HIGH_DIA_THRESHOLD = 90;
+        const STORAGE_KEY = 'bp_records_data';
+
+        let recordsData = [];
+
+        function getTimePeriod(hour) {
+            if (hour >= 5 && hour < 12) return '早上';
+            if (hour >= 12 && hour < 18) return '下午';
+            return '晚上';
+        }
+
+        function loadFromStorage() {
+            const dataStr = localStorage.getItem(STORAGE_KEY);
+            if (dataStr) {
+                recordsData = JSON.parse(dataStr);
+            }
+            renderTable();
+        }
+
+        function saveToStorage() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(recordsData));
+        }
+
+        function renderTable() {
+            recordsData.sort((a, b) => new Date(b.fullTime) - new Date(a.fullTime));
+
+            const tbody = document.getElementById('recordBody');
+            tbody.innerHTML = ''; 
+
+            let currentDateStr = null;
+            let colorToggle = 0;
+
+            recordsData.forEach(r => {
+                const dateStr = `${r.year}-${r.month}-${r.day}`;
+                
+                if (currentDateStr !== dateStr) {
+                    if (currentDateStr !== null) {
+                        colorToggle = colorToggle === 0 ? 1 : 0;
+                    }
+                    currentDateStr = dateStr;
+                }
+
+                const sys = parseInt(r.sys);
+                const dia = parseInt(r.dia);
+                
+                const highClassSys = sys >= HIGH_SYS_THRESHOLD ? ' text-high' : '';
+                const highClassDia = dia >= HIGH_DIA_THRESHOLD ? ' text-high' : '';
+
+                const tr = document.createElement('tr');
+                tr.className = `record-row day-color-${colorToggle}`;
+                tr.innerHTML = `
+                    <td>${r.year}</td>
+                    <td>${r.month}</td>
+                    <td>${r.day}</td>
+                    <td class="sys-val${highClassSys}">${r.sys}</td>
+                    <td class="dia-val${highClassDia}">${r.dia}</td>
+                    <td class="hr-val">${r.hr}</td>
+                    <td>${r.period}</td>
+                    <td class="status-val">${r.status}</td>
+                    <td>${r.fullTime}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            updateLatestRecordCard();
+        }
+
+        function updateLatestRecordCard() {
+            const sysEl = document.getElementById('latestSysVal');
+            const diaEl = document.getElementById('latestDiaVal');
+            const hrEl = document.getElementById('latestHrVal');
+
+            if (recordsData.length === 0) {
+                sysEl.innerText = '--';
+                sysEl.classList.remove('text-high');
+                diaEl.innerText = '--';
+                diaEl.classList.remove('text-high');
+                hrEl.innerText = '--';
+                return;
+            }
+
+            // 最新一筆
+            const latest = recordsData[0];
+            
+            sysEl.innerText = latest.sys;
+            diaEl.innerText = latest.dia;
+            hrEl.innerText = latest.hr;
+
+            if (parseInt(latest.sys) >= HIGH_SYS_THRESHOLD) {
+                sysEl.classList.add('text-high');
+            } else {
+                sysEl.classList.remove('text-high');
+            }
+
+            if (parseInt(latest.dia) >= HIGH_DIA_THRESHOLD) {
+                diaEl.classList.add('text-high');
+            } else {
+                diaEl.classList.remove('text-high');
+            }
+
+            const card = document.getElementById('latestRecordCard');
+            card.style.borderColor = 'var(--info-color)';
+            setTimeout(() => {
+                card.style.borderColor = 'var(--border-color)';
+            }, 1000);
+        }
+
+        function addRecord() {
+            const sys = document.getElementById('sysInput').value;
+            const dia = document.getElementById('diaInput').value;
+            const hr = document.getElementById('hrInput').value;
+            const status = document.getElementById('statusInput').value || '無';
+
+            if (!sys || !dia || !hr) {
+                alert('請完整輸入高血壓、低血壓與心跳數值。');
+                return;
+            }
+
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hour = String(now.getHours()).padStart(2, '0');
+            const minute = String(now.getMinutes()).padStart(2, '0');
+            
+            const period = getTimePeriod(now.getHours());
+            const fullTimeStr = `${year}/${month}/${day} ${hour}:${minute}`;
+
+            recordsData.push({
+                year: year.toString(),
+                month: month.toString(),
+                day: day.toString(),
+                sys: sys.toString(),
+                dia: dia.toString(),
+                hr: hr.toString(),
+                period: period,
+                status: status,
+                fullTime: fullTimeStr
+            });
+
+            document.getElementById('sysInput').value = '';
+            document.getElementById('diaInput').value = '';
+            document.getElementById('hrInput').value = '';
+            document.getElementById('statusInput').value = '無';
+            document.getElementById('sysInput').focus();
+
+            saveToStorage(); 
+            renderTable();
+        }
+
+        function deleteLatestRecord() {
+            if (recordsData.length > 0) {
+                recordsData.shift();
+                saveToStorage(); 
+                renderTable();
+            } else {
+                alert('已經沒有紀錄可刪除了。');
+            }
+        }
+
+        function exportToCSV() {
+            if (recordsData.length === 0) {
+                alert('沒有資料可以匯出。');
+                return;
+            }
+
+            let csvContent = '\uFEFF';
+            csvContent += '"年","月","日","高 (SYS)","低 (DIA)","心跳 (HR)","時間段","狀態","完整紀錄時間"\r\n';
+            
+            recordsData.forEach(r => {
+                const rowData = [r.year, r.month, r.day, r.sys, r.dia, r.hr, r.period, r.status, r.fullTime].map(v => `"${v}"`);
+                csvContent += rowData.join(',') + '\r\n';
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `血壓紀錄_${dateStr}.csv`);
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function importFromCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.replace(/^\uFEFF/, '').trim().split(/\r?\n/);
+                
+                if (lines.length <= 1) {
+                    alert('檔案空白或格式無效。');
+                    return;
+                }
+
+                for (let i = 1; i < lines.length; i++) {
+                    const rowText = lines[i];
+                    if (!rowText) continue;
+                    
+                    const cols = rowText.split(',').map(c => c.replace(/^"|"$/g, '').trim());
+                    if (cols.length < 9) continue;
+
+                    recordsData.push({
+                        year: cols[0],
+                        month: cols[1],
+                        day: cols[2],
+                        sys: cols[3],
+                        dia: cols[4],
+                        hr: cols[5],
+                        period: cols[6],
+                        status: cols[7],
+                        fullTime: cols[8]
+                    });
+                }
+                
+                saveToStorage(); 
+                renderTable();
+                event.target.value = '';
+            };
+            reader.readAsText(file, "UTF-8");
+        }
+
+        window.onload = function() {
+            loadFromStorage();
+        };
+    </script>
+</body>
+</html>
