@@ -101,6 +101,7 @@
             /* 改用綠色漸層標題 */
             background: linear-gradient(135deg, #3fb950, #2ea043);
             -webkit-background-clip: text;
+            background-clip: text; /* 加入標準屬性 */
             -webkit-text-fill-color: transparent;
             display: flex;
             align-items: center;
@@ -237,6 +238,7 @@
         .form-input {
             width: 100%;
             padding: 14px 18px;
+            padding-right: 70px; /* 增加右側內距，為單位留出空間 */
             font-size: 1.1rem;
             background-color: var(--bg-color);
             border: 1px solid var(--border-color);
@@ -245,6 +247,19 @@
             font-family: 'Poppins', sans-serif;
             font-weight: 500;
             color: var(--text-color);
+        }
+
+        /* 隱藏 Chrome, Safari, Edge, Opera 的數值箭頭 */
+        .form-input::-webkit-outer-spin-button,
+        .form-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            appearance: none; /* 加入標準屬性 */
+            margin: 0;
+        }
+
+        /* 隱藏 Firefox 的數值箭頭 */
+        .form-input[type=number] {
+            -moz-appearance: textfield;
         }
 
         .form-input:focus {
