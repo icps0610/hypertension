@@ -503,11 +503,12 @@
                         <button class="btn btn-export" onclick="exportToCSV()">
                             <i class="fas fa-file-download"></i> 匯出 CSV
                         </button>
-                        <button class="btn btn-import" onclick="document.getElementById('csvFileInput').click()">
-                            <i class="fas fa-file-upload"></i> 匯入 CSV
-                        </button>
-                        <input type="file" id="csvFileInput" accept=".csv" style="display: none;"
+                        <input type="file" id="csvFileInput" accept=".csv, text/csv"
+                            style="position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none;"
                             onchange="importFromCSV(event)">
+                        <label for="csvFileInput" class="btn btn-import" style="margin: 0; flex: 1;">
+                            <i class="fas fa-file-upload"></i> 匯入 CSV
+                        </label>
                     </div>
                 </div>
             </div>
