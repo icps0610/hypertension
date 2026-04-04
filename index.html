@@ -381,7 +381,7 @@
             }
 
             .input-section {
-                order: -1;
+                order: 1; /* 改為 1，讓 data-section (order 預設 0) 在手機模式下排在最上方 */
             }
 
             .input-card {
@@ -477,12 +477,16 @@
                         <span class="input-unit">bpm</span>
                     </div>
                 </div>
-                <div class="form-field hide-on-mobile">
+                <div class="form-field"> <!-- 移除 hide-on-mobile，讓手機也能輸入備註 -->
                     <label class="form-label">備註狀態</label>
-                    <div class="form-input-wrapper">
-                        <input type="text" id="statusInput" class="form-input" placeholder="無" value="無">
-                        <i class="fas fa-pen input-unit"
-                            style="pointer-events: auto; right: 18px; color: #8b949e; font-size: 0.8rem;"></i>
+                    <div class="form-input-wrapper" style="flex-direction: column; gap: 8px; align-items: stretch;">
+                        <select id="statusSelect" class="form-input" onchange="toggleCustomStatus()">
+                            <option value="無">無</option>
+                            <option value="藥前">藥前</option>
+                            <option value="藥後">藥後</option>
+                            <option value="自訂">自訂</option>
+                        </select>
+                        <input type="text" id="statusCustomInput" class="form-input" placeholder="請輸入自訂狀態" style="display: none;">
                     </div>
                 </div>
             </div>
@@ -584,8 +588,13 @@
             const sys = document.getElementById('sysInput').value;
             const dia = document.getElementById('diaInput').value;
             const hr = document.getElementById('hrInput').value;
-            const statusEl = document.getElementById('statusInput');
-            const status = statusEl ? (statusEl.value || '無') : '無';
+            
+            const statusSelect = document.getElementById('statusSelect');
+            const statusCustomInput = document.getElementById('statusCustomInput');
+            let status = statusSelect.value;
+            if (status === '自訂') {
+                status = statusCustomInput.value || '無';
+            }
 
             if (!sys || !dia || !hr) {
                 alert('請完整輸入高血壓、低血壓與心跳數值。');
@@ -617,14 +626,30 @@
             document.getElementById('sysInput').value = '';
             document.getElementById('diaInput').value = '';
             document.getElementById('hrInput').value = '';
-            if (statusEl) statusEl.value = '無';
-
+            
+            // 重設備註選單
+            document.getElementById('statusSelect').value = '無';
+            const statusCustomInputReset = document.getElementById('statusCustomInput');
+            statusCustomInputReset.value = '';
+            statusCustomInputReset.style.display = 'none';
+            
             if (window.innerWidth > 900) {
                 document.getElementById('sysInput').focus();
             }
 
             saveToStorage();
             renderTable();
+        }
+
+        function toggleCustomStatus() {
+            const select = document.getElementById('statusSelect');
+            const customInput = document.getElementById('statusCustomInput');
+            if (select.value === '自訂') {
+                customInput.style.display = 'block';
+                customInput.focus();
+            } else {
+                customInput.style.display = 'none';
+            }
         }
 
         function deleteLatestRecord() {
