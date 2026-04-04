@@ -138,6 +138,7 @@
         td {
             border-bottom: 1px solid var(--border-color);
             padding: 14px 10px;
+            vertical-align: middle; /* 垂直居中 */
         }
 
         th {
@@ -145,6 +146,20 @@
             color: var(--text-secondary);
             font-size: 0.8rem;
             letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        /* 數值欄位的標題與內容統一靠右對齊 */
+        .col-sys, .col-dia, .col-hr, .col-fulltime,
+        td.sys-val, td.dia-val, td.hr-val, td.fulltime-val {
+            text-align: right !important;
+            padding-right: 24px !important;
+        }
+
+        /* 日期與狀態欄位統一居中 */
+        .col-date, .col-period, .col-status,
+        td.date-val, td.period-val, td.status-val {
+            text-align: center !important;
         }
 
         tbody tr:last-child td {
@@ -173,20 +188,6 @@
             font-weight: 700;
             text-shadow: 0 0 8px rgba(248, 81, 73, 0.3);
             /* 增加發光質感 */
-        }
-
-        td.sys-val,
-        td.dia-val,
-        td.hr-val {
-            text-align: right;
-            padding-right: 20px;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 500;
-        }
-
-        td.status-val {
-            text-align: left;
-            padding-left: 20px;
         }
 
         .input-section {
@@ -292,8 +293,8 @@
             width: 100%;
         }
 
-        /* 漸層與陰影按鈕 (不死板、高質感) */
-        button.btn {
+        /* 漸層與陰影按鈕 (不再限定於 button 標籤) */
+        .btn {
             width: 100%;
             padding: 16px;
             font-size: 1rem;
@@ -309,15 +310,17 @@
             gap: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            box-sizing: border-box; /* 確保 padding 不會撐大 label */
+            user-select: none;     /* 避免 label 上的文字被選取 */
         }
 
-        button.btn:hover {
+        .btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
             filter: brightness(1.1);
         }
 
-        button.btn:active {
+        .btn:active {
             transform: translateY(1px);
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
             filter: brightness(0.9);
@@ -435,15 +438,15 @@
                     <table id="dataTable">
                         <thead>
                             <tr>
-                                <th class="hide-on-mobile">年</th>
-                                <th>月</th>
-                                <th>日</th>
-                                <th>高 (SYS)</th>
-                                <th>低 (DIA)</th>
-                                <th>心跳 (HR)</th>
-                                <th class="hide-on-mobile">時間段</th>
-                                <th class="hide-on-mobile">狀態</th>
-                                <th class="hide-on-mobile">完整紀錄時間</th>
+                                <th class="hide-on-mobile col-date">年</th>
+                                <th class="col-date">月</th>
+                                <th class="col-date">日</th>
+                                <th class="col-sys">高 (SYS)</th>
+                                <th class="col-dia">低 (DIA)</th>
+                                <th class="col-hr">心跳 (HR)</th>
+                                <th class="hide-on-mobile col-period">時間段</th>
+                                <th class="hide-on-mobile col-status">狀態</th>
+                                <th class="hide-on-mobile col-fulltime">完整紀錄時間</th>
                             </tr>
                         </thead>
                         <tbody id="recordBody">
@@ -501,13 +504,13 @@
                     </button>
                     <div class="action-row">
                         <button class="btn btn-export" onclick="exportToCSV()">
-                            <i class="fas fa-file-download"></i> 匯出 CSV
+                            <i class="fas fa-file-download"></i> 匯出 TXT
                         </button>
-                        <input type="file" id="csvFileInput" accept=".csv, text/csv"
+                        <input type="file" id="csvFileInput" accept=".txt"
                             style="position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none;"
                             onchange="importFromCSV(event)">
                         <label for="csvFileInput" class="btn btn-import" style="margin: 0; flex: 1;">
-                            <i class="fas fa-file-upload"></i> 匯入 CSV
+                            <i class="fas fa-file-upload"></i> 匯入 TXT
                         </label>
                     </div>
                 </div>
@@ -571,15 +574,15 @@
                     tr.classList.add('latest-record');
                 }
                 tr.innerHTML = `
-                    <td class="hide-on-mobile">${r.year}</td>
-                    <td>${r.month}</td>
-                    <td>${r.day}</td>
+                    <td class="hide-on-mobile date-val">${r.year}</td>
+                    <td class="date-val">${r.month}</td>
+                    <td class="date-val">${r.day}</td>
                     <td class="sys-val${highClassSys}">${r.sys}</td>
                     <td class="dia-val${highClassDia}">${r.dia}</td>
                     <td class="hr-val">${r.hr}</td>
-                    <td class="hide-on-mobile">${r.period}</td>
+                    <td class="hide-on-mobile period-val">${r.period}</td>
                     <td class="status-val hide-on-mobile">${r.status}</td>
-                    <td class="hide-on-mobile">${r.fullTime}</td>
+                    <td class="hide-on-mobile fulltime-val">${r.fullTime}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -604,8 +607,8 @@
 
             const now = new Date();
             const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
+            const month = now.getMonth() + 1; // 移除補零
+            const day = now.getDate(); // 移除補零
             const hour = String(now.getHours()).padStart(2, '0');
             const minute = String(now.getMinutes()).padStart(2, '0');
 
@@ -681,11 +684,10 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
 
-            const now = new Date();
-            const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
-
+            const unixtime = Date.now();
+            
             link.setAttribute('href', url);
-            link.setAttribute('download', `血壓紀錄_${dateStr}.csv`);
+            link.setAttribute('download', `血壓_${unixtime}.txt`);
             link.style.display = 'none';
             document.body.appendChild(link);
             link.click();
