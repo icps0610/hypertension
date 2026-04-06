@@ -1,18 +1,13 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>血壓紀錄系統</title>
     <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩸</text></svg>">
-
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩸</text></svg>">
     <style>
         :root {
             --danger-color: #f85149;
@@ -21,7 +16,6 @@
             --text-color: #c9d1d9;
             --text-secondary: #8b949e;
             --border-color: #30363d;
-
             --radius-main: 16px;
             --radius-sub: 12px;
             --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -40,11 +34,9 @@
             0% {
                 outline-color: rgba(248, 81, 73, 1);
             }
-
             50% {
                 outline-color: rgba(248, 81, 73, 0.4);
             }
-
             100% {
                 outline-color: rgba(248, 81, 73, 1);
             }
@@ -134,8 +126,7 @@
             z-index: 10;
         }
 
-        th,
-        td {
+        th, td {
             border-bottom: 1px solid var(--border-color);
             padding: 14px 10px;
             vertical-align: middle; /* 垂直居中 */
@@ -168,6 +159,7 @@
 
         .record-row {
             transition: var(--transition);
+            cursor: pointer; /* 加上游標樣式提示可點擊 */
         }
 
         .record-row:hover {
@@ -181,6 +173,12 @@
 
         .day-color-1 {
             background-color: #1c2128;
+        }
+
+        .record-row.selected {
+            background-color: rgba(248, 81, 73, 0.25) !important;
+            outline: 2px solid var(--danger-color);
+            outline-offset: -2px;
         }
 
         .text-high {
@@ -400,8 +398,7 @@
                 /* 增加一點高度 */
             }
 
-            th,
-            td {
+            th, td {
                 padding: 12px 6px;
                 font-size: 0.9rem;
             }
@@ -427,9 +424,7 @@
         }
     </style>
 </head>
-
 <body>
-
     <div class="main-container">
         <div class="data-section">
             <div class="table-card">
@@ -480,8 +475,7 @@
                         <span class="input-unit">bpm</span>
                     </div>
                 </div>
-                <div class="form-field"> <!-- 移除 hide-on-mobile，讓手機也能輸入備註 -->
-                    <label class="form-label">備註狀態</label>
+                <div class="form-field"> <label class="form-label">備註狀態</label>
                     <div class="form-input-wrapper" style="flex-direction: column; gap: 8px; align-items: stretch;">
                         <select id="statusSelect" class="form-input" onchange="toggleCustomStatus()">
                             <option value="無">無</option>
@@ -499,8 +493,8 @@
                     <button class="btn btn-submit" onclick="addRecord()">
                         <i class="fas fa-check-circle"></i> 輸入並紀錄
                     </button>
-                    <button class="btn btn-delete" onclick="deleteLatestRecord()">
-                        <i class="fas fa-eraser"></i> 刪除最新紀錄
+                    <button class="btn btn-delete" onclick="deleteSelectedRecords()" id="deleteBtn">
+                        <i class="fas fa-trash-alt"></i> 刪除選取項目 <span id="selectedCount" style="display:none">(0)</span>
                     </button>
                     <div class="action-row">
                         <button class="btn btn-export" onclick="exportToCSV()">
@@ -524,6 +518,7 @@
         const STORAGE_KEY = 'bp_records_data';
 
         let recordsData = [];
+        let selectedIndices = new Set(); // 儲存選取的索引
 
         function getTimePeriod(hour) {
             if (hour >= 5 && hour < 12) return '早上';
@@ -552,6 +547,10 @@
             let currentDateStr = null;
             let colorToggle = 0;
 
+            // 重新渲染時清空選取狀態
+            selectedIndices.clear();
+            updateDeleteButton();
+
             recordsData.forEach((r, index) => {
                 const dateStr = `${r.year}-${r.month}-${r.day}`;
 
@@ -573,6 +572,12 @@
                 if (index === 0) {
                     tr.classList.add('latest-record');
                 }
+                
+                // 綁定點擊事件以選取資料
+                tr.onclick = function() {
+                    toggleSelection(index, this);
+                };
+
                 tr.innerHTML = `
                     <td class="hide-on-mobile date-val">${r.year}</td>
                     <td class="date-val">${r.month}</td>
@@ -588,6 +593,27 @@
             });
         }
 
+        function toggleSelection(index, trElement) {
+            if (selectedIndices.has(index)) {
+                selectedIndices.delete(index);
+                trElement.classList.remove('selected');
+            } else {
+                selectedIndices.add(index);
+                trElement.classList.add('selected');
+            }
+            updateDeleteButton();
+        }
+
+        function updateDeleteButton() {
+            const countSpan = document.getElementById('selectedCount');
+            if (selectedIndices.size > 0) {
+                countSpan.style.display = 'inline';
+                countSpan.textContent = `(${selectedIndices.size})`;
+            } else {
+                countSpan.style.display = 'none';
+            }
+        }
+
         function addRecord() {
             const sys = document.getElementById('sysInput').value;
             const dia = document.getElementById('diaInput').value;
@@ -596,6 +622,7 @@
             const statusSelect = document.getElementById('statusSelect');
             const statusCustomInput = document.getElementById('statusCustomInput');
             let status = statusSelect.value;
+            
             if (status === '自訂') {
                 status = statusCustomInput.value || '無';
             }
@@ -656,13 +683,16 @@
             }
         }
 
-        function deleteLatestRecord() {
-            if (recordsData.length > 0) {
-                recordsData.shift();
+        function deleteSelectedRecords() {
+            if (selectedIndices.size === 0) {
+                alert('請先點擊表格選取要刪除的紀錄。');
+                return;
+            }
+            if (confirm(`確定要刪除已選取的 ${selectedIndices.size} 筆紀錄嗎？`)) {
+                // 過濾掉有被選取的索引來保留其餘資料
+                recordsData = recordsData.filter((_, index) => !selectedIndices.has(index));
                 saveToStorage();
                 renderTable();
-            } else {
-                alert('已經沒有紀錄可刪除了。');
             }
         }
 
@@ -685,7 +715,6 @@
             const link = document.createElement('a');
 
             const unixtime = Date.now();
-            
             link.setAttribute('href', url);
             link.setAttribute('download', `血壓_${unixtime}.txt`);
             link.style.display = 'none';
@@ -740,5 +769,4 @@
         };
     </script>
 </body>
-
 </html>
