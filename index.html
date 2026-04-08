@@ -422,6 +422,16 @@
                 font-size: 0.95rem;
             }
         }
+        
+        .input-section .input-card:last-child {
+            margin-top: auto;
+        }
+        
+        /* 修改此處，加入均分設定 */
+        .input-section .input-card:first-child {
+            flex: 1;
+            justify-content: space-evenly; 
+        }
     </style>
 </head>
 <body>
@@ -453,7 +463,6 @@
 
         <div class="input-section">
             <div class="input-card">
-                <h2><i class="fas fa-notes-medical"></i> 新增量測</h2>
                 <div class="form-field">
                     <label class="form-label">收縮壓 (高)</label>
                     <div class="form-input-wrapper">
