@@ -953,19 +953,30 @@
                 
                 const dayRecords = grouped[dateKey] || [];
                 
-                // 早上與晚上數據
-                // 先找「藥前」開頭的紀錄 (e.g. 藥前-沒睡飽)
-                let morningRec = dayRecords
-                    .filter(r => r.status && r.status.startsWith('藥前'))
-                    .sort((a,b) => a.actualTime - b.actualTime)[0];
+                // 早上與晚上數據判定邏輯
+                const sortedDays = [...dayRecords].sort((a,b) => a.actualTime - b.actualTime);
                 
-                // 如果當天沒標註藥前，則取當天第一筆作為備援
-                if (!morningRec && dayRecords.length > 0) {
-                    morningRec = [...dayRecords].sort((a,b) => a.actualTime - b.actualTime)[0];
-                }
+                // 1. 優先尋找標註有「藥前」的紀錄作為早上點
+                let morningRec = sortedDays.find(r => r.status && r.status.startsWith('藥前'));
+                
+                // 2. 決定晚上點 (預設為最後一筆)
+                let nightRec = sortedDays.length > 0 ? sortedDays[sortedDays.length - 1] : null;
 
-                const nightRec = dayRecords.length > 0 ? 
-                    [...dayRecords].sort((a,b) => b.actualTime - a.actualTime)[0] : null;
+                // 3. 備援：若無「藥前」標籤
+                if (!morningRec && sortedDays.length > 0) {
+                    if (sortedDays.length === 1) {
+                        // 只有一筆紀錄時：6 點以前歸為早上，以後歸為晚上
+                        const hr = sortedDays[0].actualTime.getHours();
+                        if (hr < 6) {
+                            morningRec = sortedDays[0];
+                        } else {
+                            morningRec = null; // 此時 nightRec 為這唯一一筆
+                        }
+                    } else {
+                        // 多筆紀錄時：自動取第一筆為早上點
+                        morningRec = sortedDays[0];
+                    }
+                }
 
                 // 早上點
                 labels.push(`${displayDateStr} 早上`);
