@@ -561,7 +561,16 @@
             updateDeleteButton();
 
             recordsData.forEach((r, index) => {
-                const dateStr = `${r.year}-${r.month}-${r.day}`;
+                // 從 fullTime 解析日期，並套用凌晨三點前算前一天的規則
+                // 替換 / 為 - 以增加瀏覽器相容性
+                const actualDate = new Date(r.fullTime.replace(/\//g, '-'));
+                // 凌晨三點偏移：減去 3 小時
+                const effectiveDate = new Date(actualDate.getTime() - 3 * 60 * 60 * 1000);
+                
+                const dY = effectiveDate.getFullYear();
+                const dM = effectiveDate.getMonth() + 1;
+                const dD = effectiveDate.getDate();
+                const dateStr = `${dY}-${dM}-${dD}`;
 
                 if (currentDateStr !== dateStr) {
                     if (currentDateStr !== null) {
@@ -582,15 +591,14 @@
                     tr.classList.add('latest-record');
                 }
                 
-                // 綁定點擊事件以選取資料
                 tr.onclick = function() {
                     toggleSelection(index, this);
                 };
 
                 tr.innerHTML = `
-                    <td class="hide-on-mobile date-val">${r.year}</td>
-                    <td class="date-val">${r.month}</td>
-                    <td class="date-val">${r.day}</td>
+                    <td class="hide-on-mobile date-val">${dY}</td>
+                    <td class="date-val">${dM}</td>
+                    <td class="date-val">${dD}</td>
                     <td class="sys-val${highClassSys}">${r.sys}</td>
                     <td class="dia-val${highClassDia}">${r.dia}</td>
                     <td class="hr-val">${r.hr}</td>
@@ -642,14 +650,18 @@
             }
 
             const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth() + 1; // 移除補零
-            const day = now.getDate(); // 移除補零
+            // 凌晨三點前算前一天：將時間減去 3 小時再來取得業務日期
+            const effectiveDate = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+            
+            const year = effectiveDate.getFullYear();
+            const month = effectiveDate.getMonth() + 1;
+            const day = effectiveDate.getDate();
             const hour = String(now.getHours()).padStart(2, '0');
             const minute = String(now.getMinutes()).padStart(2, '0');
 
             const period = getTimePeriod(now.getHours());
-            const fullTimeStr = `${year}/${month}/${day} ${hour}:${minute}`;
+            // 完整紀錄時間仍保留實際時間
+            const fullTimeStr = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()} ${hour}:${minute}`;
 
             recordsData.push({
                 year: year.toString(),
