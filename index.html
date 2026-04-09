@@ -492,6 +492,27 @@
             -webkit-text-fill-color: #ffffff !important; /* 強制覆蓋標題的透明設定 */
         }
 
+        .chart-container {
+            flex: 1;
+            min-height: 0;
+            position: relative;
+            overflow-x: auto; /* 手機模式可橫向滑動 */
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* 手機直向模式下的特殊處理 */
+        @media (max-width: 900px) {
+            #trendingChart {
+                min-width: 800px; /* 強制橫向展開，解決看清楚的問題 */
+                height: 100% !important;
+            }
+            .modal-content {
+                padding: 15px;
+                height: 90vh;
+            }
+        }
+
         .btn-chart i {
             color: #ffffff !important;
             -webkit-text-fill-color: #ffffff !important;
@@ -878,8 +899,8 @@
     <div id="chartModal" class="modal-overlay">
         <div class="modal-content">
             <span class="modal-close" onclick="closeChartModal()">&times;</span>
-            <h2 style="margin-bottom: 24px; color: var(--text-color);"><i class="fas fa-chart-area"></i> 最近七天血壓趨勢</h2>
-            <div style="flex: 1; min-height: 0; position: relative;">
+            <h2 style="margin-bottom: 24px; color: var(--text-color);"><i class="fas fa-chart-area"></i> 最近七天血壓趨勢 <span style="font-size: 0.7rem; color: var(--text-secondary);">(手機可橫向滑動)</span></h2>
+            <div class="chart-container" id="chartWrapper">
                 <canvas id="trendingChart"></canvas>
             </div>
         </div>
@@ -1059,6 +1080,12 @@
                     }
                 }
             });
+
+            // 手機模式下，自動捲動到最右邊（最新資料）
+            setTimeout(() => {
+                const wrapper = document.getElementById('chartWrapper');
+                wrapper.scrollLeft = wrapper.scrollWidth;
+            }, 100);
         }
     </script>
 </body>
