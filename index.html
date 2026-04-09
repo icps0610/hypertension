@@ -7,6 +7,7 @@
     <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩸</text></svg>">
     <style>
         :root {
@@ -90,10 +91,9 @@
         .table-card h2 {
             font-weight: 700;
             margin-bottom: 16px;
-            /* 改用綠色漸層標題 */
             background: linear-gradient(135deg, #3fb950, #2ea043);
             -webkit-background-clip: text;
-            background-clip: text; /* 加入標準屬性 */
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             display: flex;
             align-items: center;
@@ -432,13 +432,75 @@
             flex: 1;
             justify-content: space-evenly; 
         }
+
+        /* 趨勢圖浮動視窗樣式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 900px;
+            height: 80vh;
+            border-radius: var(--radius-main);
+            padding: 30px;
+            position: relative;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px; right: 20px;
+            font-size: 24px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            color: var(--danger-color);
+        }
+
+        .btn-chart {
+            background: linear-gradient(135deg, #2ea043 0%, #3fb950 100%);
+            width: auto !important;
+            padding: 8px 16px !important;
+            font-size: 0.85rem !important;
+            margin-left: auto;
+            height: auto !important;
+            color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important; /* 強制覆蓋標題的透明設定 */
+        }
+
+        .btn-chart i {
+            color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
+            background: none !important;
+        }
     </style>
 </head>
 <body>
     <div class="main-container">
         <div class="data-section">
             <div class="table-card">
-                <h2><i class="fas fa-heartbeat"></i> 血壓歷史紀錄</h2>
+                <h2>
+                    <i class="fas fa-heartbeat"></i> 血壓歷史紀錄
+                    <button class="btn btn-chart" onclick="showChartModal()">
+                        <i class="fas fa-chart-line"></i> 趨勢圖
+                    </button>
+                </h2>
                 <div class="table-wrapper">
                     <table id="dataTable">
                         <thead>
@@ -561,10 +623,7 @@
             updateDeleteButton();
 
             recordsData.forEach((r, index) => {
-                // 從 fullTime 解析日期，並套用凌晨三點前算前一天的規則
-                // 替換 / 為 - 以增加瀏覽器相容性
                 const actualDate = new Date(r.fullTime.replace(/\//g, '-'));
-                // 凌晨三點偏移：減去 3 小時
                 const effectiveDate = new Date(actualDate.getTime() - 3 * 60 * 60 * 1000);
                 
                 const dY = effectiveDate.getFullYear();
@@ -650,7 +709,6 @@
             }
 
             const now = new Date();
-            // 凌晨三點前算前一天：將時間減去 3 小時再來取得業務日期
             const effectiveDate = new Date(now.getTime() - 3 * 60 * 60 * 1000);
             
             const year = effectiveDate.getFullYear();
@@ -660,7 +718,6 @@
             const minute = String(now.getMinutes()).padStart(2, '0');
 
             const period = getTimePeriod(now.getHours());
-            // 完整紀錄時間仍保留實際時間
             const fullTimeStr = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()} ${hour}:${minute}`;
 
             recordsData.push({
@@ -679,7 +736,6 @@
             document.getElementById('diaInput').value = '';
             document.getElementById('hrInput').value = '';
             
-            // 重設備註選單
             document.getElementById('statusSelect').value = '無';
             const statusCustomInputReset = document.getElementById('statusCustomInput');
             statusCustomInputReset.value = '';
@@ -710,7 +766,6 @@
                 return;
             }
             if (confirm(`確定要刪除已選取的 ${selectedIndices.size} 筆紀錄嗎？`)) {
-                // 過濾掉有被選取的索引來保留其餘資料
                 recordsData = recordsData.filter((_, index) => !selectedIndices.has(index));
                 saveToStorage();
                 renderTable();
@@ -788,6 +843,185 @@
         window.onload = function () {
             loadFromStorage();
         };
+    </script>
+    <div id="chartModal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeChartModal()">&times;</span>
+            <h2 style="margin-bottom: 24px; color: var(--text-color);"><i class="fas fa-chart-area"></i> 最近七天血壓趨勢</h2>
+            <div style="flex: 1; min-height: 0; position: relative;">
+                <canvas id="trendingChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let myChart = null;
+
+        function closeChartModal() {
+            document.getElementById('chartModal').style.display = 'none';
+        }
+
+        function showChartModal() {
+            if (recordsData.length === 0) {
+                alert('尚無資料可顯示趨勢圖。');
+                return;
+            }
+            
+            document.getElementById('chartModal').style.display = 'flex';
+
+            // 1. 資料處理：產生最近七天（從今天回推）的完整日期
+            const grouped = {};
+            recordsData.forEach(r => {
+                const actualTime = new Date(r.fullTime);
+                const effectiveDate = new Date(actualTime.getTime() - 3 * 60 * 60 * 1000);
+                const dateKey = `${effectiveDate.getFullYear()}-${effectiveDate.getMonth() + 1}-${effectiveDate.getDate()}`;
+                
+                if (!grouped[dateKey]) grouped[dateKey] = [];
+                grouped[dateKey].push({ ...r, actualTime });
+            });
+
+            const labels = [];
+            const sysData = [];
+            const diaData = [];
+            const hrData = [];
+
+            // 從今天業務日期回推 7 天
+            const now = new Date();
+            const todayBusinessPoint = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+            
+            for (let i = 6; i >= 0; i--) {
+                const targetDay = new Date(todayBusinessPoint.getTime());
+                targetDay.setDate(todayBusinessPoint.getDate() - i);
+                const dateKey = `${targetDay.getFullYear()}-${targetDay.getMonth() + 1}-${targetDay.getDate()}`;
+                const displayDateStr = `${targetDay.getMonth() + 1}/${targetDay.getDate()}`;
+                
+                const dayRecords = grouped[dateKey] || [];
+                
+                // 早上與晚上數據
+                const morningRec = dayRecords
+                    .filter(r => r.status === '藥前')
+                    .sort((a,b) => a.actualTime - b.actualTime)[0];
+                const nightRec = dayRecords.length > 0 ? 
+                    [...dayRecords].sort((a,b) => b.actualTime - a.actualTime)[0] : null;
+
+                // 早上點
+                labels.push(`${displayDateStr} 早上`);
+                if (morningRec) {
+                    sysData.push(parseInt(morningRec.sys));
+                    diaData.push(parseInt(morningRec.dia));
+                    hrData.push(parseInt(morningRec.hr));
+                } else {
+                    sysData.push(null);
+                    diaData.push(null);
+                    hrData.push(null);
+                }
+
+                // 晚上點 (若與早上同一筆則不重複顯示以免線條混亂)
+                labels.push(`${displayDateStr} 晚上`);
+                if (nightRec && nightRec !== morningRec) {
+                    sysData.push(parseInt(nightRec.sys));
+                    diaData.push(parseInt(nightRec.dia));
+                    hrData.push(parseInt(nightRec.hr));
+                } else {
+                    sysData.push(null);
+                    diaData.push(null);
+                    hrData.push(null);
+                }
+            }
+
+            // 計算 X 軸標籤顏色：同一天文字同一色
+            const tickColors = [];
+            let lastColorDay = null;
+            let colorToggleIdx = 0;
+            const colorsPalette = ['#c9d1d9', '#58a6ff']; // 淺灰與淡藍交替
+
+            labels.forEach(label => {
+                const dayPrefix = label.split(' ')[0];
+                if (dayPrefix !== lastColorDay) {
+                    colorToggleIdx++;
+                    lastColorDay = dayPrefix;
+                }
+                tickColors.push(colorsPalette[colorToggleIdx % colorsPalette.length]);
+            });
+
+            const ctx = document.getElementById('trendingChart').getContext('2d');
+            if (myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '高壓 (SYS)',
+                            data: sysData,
+                            borderColor: '#f85149',
+                            backgroundColor: 'rgba(248, 81, 73, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.3,
+                            pointRadius: 5,
+                            pointHoverRadius: 8,
+                            fill: false
+                        },
+                        {
+                            label: '低壓 (DIA)',
+                            data: diaData,
+                            borderColor: '#3fb950',
+                            backgroundColor: 'rgba(63, 185, 80, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.3,
+                            pointRadius: 5,
+                            pointHoverRadius: 8,
+                            fill: false
+                        },
+                        {
+                            label: '心跳 (HR)',
+                            data: hrData,
+                            borderColor: '#fb8c00', // 改為明顯的橘色
+                            backgroundColor: 'transparent',
+                            borderWidth: 3,         // 加粗一點點
+                            tension: 0.3,
+                            pointRadius: 4,
+                            pointHoverRadius: 7,
+                            fill: false             // 實線，不再使用 dashed
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { color: '#c9d1d9', font: { size: 12, family: 'Noto Sans TC' } }
+                        },
+                        tooltip: {
+                            backgroundColor: '#161b22',
+                            titleColor: '#58a6ff',
+                            bodyColor: '#c9d1d9',
+                            borderColor: '#30363d',
+                            borderWidth: 1,
+                            padding: 12
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { 
+                                color: tickColors, // 使用預先計算的顏色陣列
+                                font: { family: 'Noto Sans TC' }
+                            },
+                            grid: { color: 'rgba(48, 54, 61, 0.3)' }
+                        },
+                        y: {
+                            min: 40,
+                            ticks: { color: '#8b949e' },
+                            grid: { color: 'rgba(48, 54, 61, 0.3)' }
+                        }
+                    }
+                }
+            });
+        }
     </script>
 </body>
 </html>
