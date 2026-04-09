@@ -294,8 +294,9 @@
         /* 漸層與陰影按鈕 (不再限定於 button 標籤) */
         .btn {
             width: 100%;
-            padding: 16px;
-            font-size: 1rem;
+            height: 54px; /* 固定高度確保對齊 */
+            padding: 0 16px;
+            font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
             border: none;
@@ -305,11 +306,18 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-            box-sizing: border-box; /* 確保 padding 不會撐大 label */
-            user-select: none;     /* 避免 label 上的文字被選取 */
+            box-sizing: border-box;
+            user-select: none;
+            white-space: nowrap; /* 防止文字折行導致高度不一 */
+        }
+
+        .btn i {
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
         }
 
         .btn:hover {
@@ -564,9 +572,14 @@
                     <button class="btn btn-submit" onclick="addRecord()">
                         <i class="fas fa-check-circle"></i> 輸入並紀錄
                     </button>
-                    <button class="btn btn-delete" onclick="deleteSelectedRecords()" id="deleteBtn">
-                        <i class="fas fa-trash-alt"></i> 刪除選取項目 <span id="selectedCount" style="display:none">(0)</span>
-                    </button>
+                    <div class="action-row">
+                        <button class="btn" style="background: linear-gradient(135deg, #6e7681 0%, #8b949e 100%); flex: 1;" onclick="toggleSelectAll()">
+                            <i class="fas fa-check-double"></i> 全選/取消
+                        </button>
+                        <button class="btn btn-delete" onclick="deleteSelectedRecords()" id="deleteBtn" style="flex: 1;">
+                            <i class="fas fa-trash-alt"></i> 刪除 <span id="selectedCount" style="display:none">(0)</span>
+                        </button>
+                    </div>
                     <div class="action-row">
                         <button class="btn btn-export" onclick="exportToCSV()">
                             <i class="fas fa-file-download"></i> 匯出 TXT
@@ -618,8 +631,13 @@
             let currentDateStr = null;
             let colorToggle = 0;
 
-            // 重新渲染時清空選取狀態
+            // 只有在資料量改變時才可能需要考慮清空，
+            // 正常 render 時我們保留選取 Set 的邏輯，但需檢查索引是否還有效
+            const tempSet = new Set(selectedIndices);
             selectedIndices.clear();
+            tempSet.forEach(idx => {
+                if (idx < recordsData.length) selectedIndices.add(idx);
+            });
             updateDeleteButton();
 
             recordsData.forEach((r, index) => {
@@ -678,6 +696,19 @@
                 trElement.classList.add('selected');
             }
             updateDeleteButton();
+        }
+
+        function toggleSelectAll() {
+            if (recordsData.length === 0) return;
+            
+            if (selectedIndices.size === recordsData.length) {
+                // 全取消
+                selectedIndices.clear();
+            } else {
+                // 全選
+                recordsData.forEach((_, i) => selectedIndices.add(i));
+            }
+            renderTable(); // 重新渲染以更新樣式
         }
 
         function updateDeleteButton() {
@@ -898,9 +929,16 @@
                 const dayRecords = grouped[dateKey] || [];
                 
                 // 早上與晚上數據
-                const morningRec = dayRecords
-                    .filter(r => r.status === '藥前')
+                // 先找「藥前」開頭的紀錄 (e.g. 藥前-沒睡飽)
+                let morningRec = dayRecords
+                    .filter(r => r.status && r.status.startsWith('藥前'))
                     .sort((a,b) => a.actualTime - b.actualTime)[0];
+                
+                // 如果當天沒標註藥前，則取當天第一筆作為備援
+                if (!morningRec && dayRecords.length > 0) {
+                    morningRec = [...dayRecords].sort((a,b) => a.actualTime - b.actualTime)[0];
+                }
+
                 const nightRec = dayRecords.length > 0 ? 
                     [...dayRecords].sort((a,b) => b.actualTime - a.actualTime)[0] : null;
 
