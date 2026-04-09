@@ -496,20 +496,24 @@
             flex: 1;
             min-height: 0;
             position: relative;
-            overflow-x: auto; /* 手機模式可橫向滑動 */
-            overflow-y: hidden;
-            -webkit-overflow-scrolling: touch;
         }
 
-        /* 手機直向模式下的特殊處理 */
+        /* 手機強制橫向模式 (旋轉 90 度) */
         @media (max-width: 900px) {
-            #trendingChart {
-                min-width: 800px; /* 強制橫向展開，解決看清楚的問題 */
-                height: 100% !important;
-            }
             .modal-content {
-                padding: 15px;
-                height: 90vh;
+                width: 85vh !important;   /* 旋轉後這會變成視覺寬度 */
+                height: 90vw !important;  /* 旋轉後這會變成視覺高度 */
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(90deg);
+                transform-origin: center;
+                padding: 20px;
+                max-width: none;
+            }
+            #trendingChart {
+                width: 100% !important;
+                height: 100% !important;
             }
         }
 
@@ -1080,12 +1084,6 @@
                     }
                 }
             });
-
-            // 手機模式下，自動捲動到最右邊（最新資料）
-            setTimeout(() => {
-                const wrapper = document.getElementById('chartWrapper');
-                wrapper.scrollLeft = wrapper.scrollWidth;
-            }, 100);
         }
     </script>
 </body>
