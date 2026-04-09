@@ -456,9 +456,10 @@
 
         .modal-content {
             background-color: var(--card-bg);
-            width: 100%;
-            max-width: 900px;
-            height: 80vh;
+            width: 95%;
+            max-width: 1300px;
+            height: auto;
+            max-height: 90vh;
             border-radius: var(--radius-main);
             padding: 30px;
             position: relative;
@@ -978,7 +979,7 @@
                     }
                 }
 
-                // 早上點
+                // 1. 決定早上數據點
                 labels.push(`${displayDateStr} 早上`);
                 if (morningRec) {
                     sysData.push(parseInt(morningRec.sys));
@@ -990,7 +991,7 @@
                     hrData.push(null);
                 }
 
-                // 晚上點 (若與早上同一筆則不重複顯示以免線條混亂)
+                // 2. 決定晚上數據點 (若與早上同一筆則不重複顯示)
                 labels.push(`${displayDateStr} 晚上`);
                 if (nightRec && nightRec !== morningRec) {
                     sysData.push(parseInt(nightRec.sys));
@@ -1018,6 +1019,7 @@
                 tickColors.push(colorsPalette[colorToggleIdx % colorsPalette.length]);
             });
 
+            const isPC = window.innerWidth > 900;
             const ctx = document.getElementById('trendingChart').getContext('2d');
             if (myChart) myChart.destroy();
 
@@ -1029,7 +1031,7 @@
                         {
                             label: '高壓 (SYS)',
                             data: sysData,
-                            borderColor: '#fb8c00', // 改為亮橘色
+                            borderColor: '#fb8c00',
                             backgroundColor: 'rgba(251, 140, 0, 0.1)',
                             borderWidth: 3,
                             tension: 0.3,
@@ -1051,24 +1053,25 @@
                         {
                             label: '心跳 (HR)',
                             data: hrData,
-                            borderColor: '#f85149', // 改為紅色
+                            borderColor: '#f85149',
                             backgroundColor: 'rgba(248, 81, 73, 0.1)',
-                            borderWidth: 3,         // 加粗一點點
+                            borderWidth: 3,
                             tension: 0.3,
                             pointRadius: 4,
                             pointHoverRadius: 7,
-                            fill: false             // 實線，不再使用 dashed
+                            fill: false
                         }
                     ]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
+                    maintainAspectRatio: isPC,
+                    aspectRatio: isPC ? 2 : undefined,
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
                         legend: {
                             position: 'top',
-                            labels: { color: '#c9d1d9', font: { size: 12, family: 'Noto Sans TC' } }
+                            labels: { color: '#c9d1d9', font: { size: isPC ? 14 : 12, family: 'Noto Sans TC' } }
                         },
                         tooltip: {
                             backgroundColor: '#161b22',
@@ -1076,19 +1079,23 @@
                             bodyColor: '#c9d1d9',
                             borderColor: '#30363d',
                             borderWidth: 1,
-                            padding: 12
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y} ${context.dataset.label.includes('心跳')?'bpm':'mmHg'}`;
+                                }
+                            }
                         }
                     },
                     scales: {
                         x: {
                             ticks: { 
-                                color: tickColors, // 使用預先計算的顏色陣列
-                                font: { family: 'Noto Sans TC' }
+                                color: (ctx) => tickColors[ctx.index],
+                                font: { family: 'Noto Sans TC', size: isPC ? 12 : 10 }
                             },
                             grid: { color: 'rgba(48, 54, 61, 0.3)' }
                         },
                         y: {
-                            min: 40,
                             ticks: { color: '#8b949e' },
                             grid: { color: 'rgba(48, 54, 61, 0.3)' }
                         }
