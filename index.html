@@ -6,666 +6,304 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>血壓紀錄系統</title>
     <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩸</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩸</text></svg>">
     <style>
         :root {
-            --danger-color: #f85149;
-            --bg-color: #0d1117;
-            --card-bg: #161b22;
-            --text-color: #c9d1d9;
-            --text-secondary: #8b949e;
-            --border-color: #30363d;
-            --radius-main: 16px;
-            --radius-sub: 12px;
-            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --apple-blue: #007aff;
+            --apple-green: #34c759;
+            --apple-red: #ff3b30;
+            --apple-orange: #ff9500;
+            --apple-gray: #8e8e93;
+            
+            --bg-color: #000000;
+            --card-bg: rgba(28, 28, 30, 0.75);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --text-color: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.55);
+            --radius-main: 22px;
+            --radius-sub: 14px;
+            --transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            --blur: blur(35px);
         }
 
-        .latest-record {
-            outline: 2px solid var(--danger-color);
-            outline-offset: -2px;
-            position: relative;
-            z-index: 1;
-            /* 輕微跳動動畫，讓它更醒目 */
-            animation: pulse-border 2s infinite;
-        }
+        /* 隱藏捲軸但保留功能 */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
 
-        @keyframes pulse-border {
-            0% {
-                outline-color: rgba(248, 81, 73, 1);
-            }
-
-            50% {
-                outline-color: rgba(248, 81, 73, 0.4);
-            }
-
-            100% {
-                outline-color: rgba(248, 81, 73, 1);
-            }
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
 
         body {
-            font-family: 'Noto Sans TC', 'Poppins', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Icons", "Helvetica Neue", "Noto Sans TC", sans-serif;
             background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(0, 122, 255, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(52, 199, 89, 0.08) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(137, 87, 229, 0.08) 0px, transparent 50%);
             color: var(--text-color);
             display: flex;
-            padding: 24px;
-            gap: 24px;
+            padding: 30px;
+            gap: 28px;
             height: 100vh;
             overflow: hidden;
         }
 
-        .main-container {
-            display: flex;
-            width: 100%;
-            height: 100%;
-            gap: 24px;
-        }
+        .main-container { display: flex; width: 100%; height: 100%; gap: 28px; }
 
-        .data-section {
-            flex: 1 1 70%;
+        .data-section { flex: 1 1 70%; display: flex; flex-direction: column; gap: 28px; height: 100%; min-width: 0; }
+
+        .card-mac {
+            background-color: var(--card-bg);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border-radius: var(--radius-main);
+            border: 1px solid var(--card-border);
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.5);
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            height: 100%;
-            min-width: 0;
-        }
-
-        .table-card {
-            background-color: var(--card-bg);
-            border-radius: var(--radius-main);
-            padding: 24px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
-            flex: 1;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            border: 1px solid var(--border-color);
-        }
-
-        .table-card h2 {
-            font-weight: 700;
-            margin-bottom: 16px;
-            background: linear-gradient(135deg, #3fb950, #2ea043);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .table-card h2 i {
-            -webkit-text-fill-color: #3fb950;
-        }
-
-        .table-wrapper {
-            flex: 1;
-            overflow-y: auto;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sub);
-            background-color: var(--bg-color);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: center;
-            font-size: 0.95rem;
-        }
-
-        thead {
-            position: sticky;
-            top: 0;
-            background-color: #0d1117;
-            z-index: 10;
-        }
-
-        th,
-        td {
-            border-bottom: 1px solid var(--border-color);
-            padding: 14px 10px;
-            vertical-align: middle;
-            /* 垂直居中 */
-        }
-
-        th {
-            font-weight: 600;
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-        }
-
-        /* 數值欄位的標題與內容統一靠右對齊 */
-        .col-sys,
-        .col-dia,
-        .col-hr,
-        .col-fulltime,
-        td.sys-val,
-        td.dia-val,
-        td.hr-val,
-        td.fulltime-val {
-            text-align: right !important;
-            padding-right: 24px !important;
-        }
-
-        /* 日期與狀態欄位統一居中 */
-        .col-date,
-        .col-period,
-        .col-status,
-        td.date-val,
-        td.period-val,
-        td.status-val {
-            text-align: center !important;
-        }
-
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        .record-row {
             transition: var(--transition);
-            cursor: pointer;
-            /* 加上游標樣式提示可點擊 */
         }
 
-        .record-row:hover {
-            filter: brightness(1.2);
-            background-color: rgba(255, 255, 255, 0.02);
-        }
-
-        .day-color-0 {
-            background-color: transparent;
-        }
-
-        .day-color-1 {
-            background-color: #1c2128;
-        }
-
-        .record-row.selected {
-            background-color: rgba(248, 81, 73, 0.25) !important;
-            outline: 2px solid var(--danger-color);
-            outline-offset: -2px;
-        }
-
-        .text-high {
-            color: var(--danger-color);
-            font-weight: 700;
-            text-shadow: 0 0 8px rgba(248, 81, 73, 0.3);
-            /* 增加發光質感 */
-        }
-
-        .input-section {
-            flex: 1 1 30%;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            height: 100%;
-        }
-
-        .input-card {
-            background-color: var(--card-bg);
-            border-radius: var(--radius-main);
-            padding: 24px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            border: 1px solid var(--border-color);
-        }
-
-        .input-card h2 {
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: var(--text-color);
+        .card-header {
+            padding: 18px 24px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            border-bottom: 1px solid var(--card-border);
+            background: rgba(255, 255, 255, 0.04);
         }
 
-        .form-field {
+        .card-header h2 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #fff;
             display: flex;
-            flex-direction: column;
-            gap: 8px;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
         }
 
-        .form-label {
-            font-size: 0.85rem;
+        .table-card { flex: 1; min-height: 0; }
+        .table-wrapper { flex: 1; overflow-y: auto; padding: 12px 24px 24px; }
+
+        table { width: 100%; border-collapse: separate; border-spacing: 0 6px; }
+        thead { /* 移除 sticky */ }
+        th {
+            text-align: center;
+            padding: 12px 14px;
             color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
             font-weight: 600;
         }
 
-        .form-input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
+        td {
+            text-align: center;
+            padding: 16px 14px;
+            font-size: 1rem;
+            border: none;
+            background: rgba(255, 255, 255, 0.03);
+            transition: var(--transition);
         }
+
+        tr td:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+        tr td:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+
+        .record-row:hover td { background: rgba(255, 255, 255, 0.1); }
+        .record-row.selected td { background: rgba(0, 122, 255, 0.25); }
+
+        .latest-record { border: 1.5px solid var(--apple-blue); animation: pulse-border 2s infinite; }
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.4); }
+            70% { box-shadow: 0 0 0 12px rgba(0, 122, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0); }
+        }
+
+        .text-high { color: var(--apple-red); font-weight: 700; }
+
+        .input-section { flex: 1 1 30%; display: flex; flex-direction: column; gap: 28px; height: 100%; }
+        .input-card { padding: 0; }
+
+        .form-field { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
+        .form-label { font-size: 0.85rem; color: var(--text-secondary); font-weight: 500; padding-left: 6px; }
 
         .form-input {
             width: 100%;
-            padding: 14px 18px;
-            padding-right: 70px;
-            /* 增加右側內距，為單位留出空間 */
-            font-size: 1.1rem;
-            background-color: var(--bg-color);
-            border: 1px solid var(--border-color);
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: var(--radius-sub);
+            color: #fff;
+            font-size: 1.1rem;
             transition: var(--transition);
-            font-family: 'Poppins', sans-serif;
-            font-weight: 500;
-            color: var(--text-color);
-        }
-
-        /* 隱藏 Chrome, Safari, Edge, Opera 的數值箭頭 */
-        .form-input::-webkit-outer-spin-button,
-        .form-input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            appearance: none;
-            /* 加入標準屬性 */
-            margin: 0;
-        }
-
-        /* 隱藏 Firefox 的數值箭頭 */
-        .form-input[type=number] {
-            -moz-appearance: textfield;
-        }
-
-        .form-input:focus {
             outline: none;
-            border-color: #3fb950;
-            box-shadow: 0 0 0 2px rgba(63, 185, 80, 0.3);
         }
+        .form-input:focus { border-color: var(--apple-blue); background: rgba(255, 255, 255, 0.1); }
 
-        .form-input::placeholder {
-            color: #484f58;
-        }
-
-        .input-unit {
-            position: absolute;
-            right: 18px;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            pointer-events: none;
-        }
-
-        .btn-group {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-
-        .action-row {
-            display: flex;
-            gap: 14px;
-            width: 100%;
-        }
-
-        /* 漸層與陰影按鈕 (不再限定於 button 標籤) */
         .btn {
             width: 100%;
-            height: 54px;
-            /* 固定高度確保對齊 */
-            padding: 0 16px;
-            font-size: 0.95rem;
+            height: 52px;
+            border-radius: var(--radius-sub);
+            border: none;
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            border: none;
-            border-radius: var(--radius-sub);
-            color: #ffffff;
             transition: var(--transition);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-            box-sizing: border-box;
-            user-select: none;
-            white-space: nowrap;
-            /* 防止文字折行導致高度不一 */
+            gap: 12px;
+            color: #fff;
         }
 
-        .btn i {
-            width: 20px;
-            text-align: center;
-            font-size: 1.1rem;
+        .btn-submit { background: linear-gradient(135deg, #28a745 0%, #34c759 100%); box-shadow: 0 4px 15px rgba(52, 199, 89, 0.3); }
+        .btn-submit:hover { filter: brightness(1.1); transform: translateY(-2px); }
+
+        .btn-delete { background: rgba(255, 59, 48, 0.12); color: #ff3b30; }
+        .btn-delete:hover { background: rgba(255, 59, 48, 0.2); transform: translateY(-1px); }
+
+        .btn-secondary { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.14); transform: translateY(-1px); }
+
+        .btn-export { background: linear-gradient(135deg, #007aff 0%, #58a6ff 100%); box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3); }
+        .btn-export:hover { filter: brightness(1.1); transform: translateY(-2px); }
+
+        .btn-import { background: linear-gradient(135deg, #8957e5 0%, #b392f0 100%); box-shadow: 0 4px 15px rgba(137, 87, 229, 0.3); }
+        .btn-import:hover { filter: brightness(1.1); transform: translateY(-2px); }
+
+        .btn-info { background: rgba(0, 122, 255, 0.08); color: var(--apple-blue); border: 1px solid rgba(0, 122, 255, 0.15); }
+        .btn-chart { background: var(--apple-green); box-shadow: 0 4px 15px rgba(52, 199, 89, 0.2); }
+
+        @media (max-width: 1400px) {
+            .fulltime-val { font-size: 0.8rem !important; letter-spacing: -0.5px; }
+            th { padding: 12px 8px; }
+            td { padding: 16px 8px; }
         }
 
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
-            filter: brightness(1.1);
-        }
-
-        .btn:active {
-            transform: translateY(1px);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-            filter: brightness(0.9);
-        }
-
-        .btn-submit {
-            background: linear-gradient(135deg, #2ea043 0%, #3fb950 100%);
-        }
-
-        .btn-delete {
-            background: linear-gradient(135deg, #da3633 0%, #f85149 100%);
-        }
-
-        .btn-export {
-            background: linear-gradient(135deg, #1f6feb 0%, #58a6ff 100%);
-            flex: 1;
-        }
-
-        .btn-import {
-            background: linear-gradient(135deg, #8957e5 0%, #b392f0 100%);
-            flex: 1;
-        }
-
-        .table-wrapper::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        .table-wrapper::-webkit-scrollbar-track {
-            background: var(--bg-color);
-            border-radius: 10px;
-        }
-
-        .table-wrapper::-webkit-scrollbar-thumb {
-            background: #30363d;
-            border-radius: 10px;
-        }
-
-        .table-wrapper::-webkit-scrollbar-thumb:hover {
-            background: #484f58;
-        }
-
-        /* 手機瀏覽模式 */
         @media (max-width: 900px) {
-            body {
-                padding: 12px;
-                height: auto;
-                min-height: 100vh;
-                overflow-y: auto;
-            }
-
-            .main-container {
-                flex-direction: column;
-            }
-
-            .data-section,
-            .input-section {
-                flex: none;
-                width: 100%;
-                height: auto;
-            }
-
-            .input-section {
-                order: 1;
-                /* 改為 1，讓 data-section (order 預設 0) 在手機模式下排在最上方 */
-            }
-
-            .input-card {
-                padding: 16px;
-            }
-
-            .table-card {
-                padding: 16px;
-            }
-
-            .table-wrapper {
-                max-height: 400px;
-                /* 增加一點高度 */
-            }
-
-            th,
-            td {
-                padding: 12px 6px;
-                font-size: 0.9rem;
-            }
-
-            td.sys-val,
-            td.dia-val,
-            td.hr-val {
-                padding-right: 8px;
-            }
-
-            .hide-on-mobile {
-                display: none;
-            }
-
-            .btn-group {
-                gap: 12px;
-            }
-
-            button.btn {
-                padding: 14px;
-                font-size: 0.95rem;
-            }
+            body { padding: 15px; height: auto; overflow-y: auto; }
+            .main-container { flex-direction: column; }
+            .data-section, .input-section { width: 100%; }
+            .input-section { order: -1; }
+            .hide-on-mobile { display: none; }
         }
 
-        .input-section .input-card:last-child {
-            margin-top: auto;
-        }
-
-        /* 修改此處，加入均分設定 */
-        .input-section .input-card:first-child {
-            flex: 1;
-            justify-content: space-evenly;
-        }
-
-        /* 趨勢圖浮動視窗樣式 */
         .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(8px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            padding: 20px;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
+            display: none; justify-content: center; align-items: center; z-index: 2000;
         }
 
         .modal-content {
-            background-color: var(--card-bg);
-            width: 95%;
-            max-width: 1300px;
-            height: auto;
-            max-height: 90vh;
-            border-radius: var(--radius-main);
-            padding: 30px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 28px;
+            padding: 40px;
+            width: 92%;
+            max-width: 1200px;
             position: relative;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.6);
         }
 
         .modal-close {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 24px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: var(--transition);
+            position: absolute; top: 20px; right: 28px;
+            font-size: 32px; color: var(--text-secondary); cursor: pointer; transition: .3s;
         }
-
-        .modal-close:hover {
-            color: var(--danger-color);
-        }
-
-        .btn-chart,
-        .btn-info {
-            width: auto !important;
-            padding: 8px 16px !important;
-            font-size: 0.85rem !important;
-            height: auto !important;
-            color: #ffffff !important;
-            -webkit-text-fill-color: #ffffff !important;
-        }
-
-        .btn-chart {
-            background: linear-gradient(135deg, #2ea043 0%, #3fb950 100%);
-        }
-
-        .btn-info {
-            background: linear-gradient(135deg, #1f6feb 0%, #58a6ff 100%);
-            margin-left: auto;
-            margin-right: 10px;
-        }
-
-        .chart-container {
-            flex: 1;
-            min-height: 0;
-            position: relative;
-        }
-
-        /* 手機強制橫向模式 (旋轉 90 度) */
-        @media (max-width: 900px) {
-            .modal-content {
-                width: 85vh !important;
-                /* 旋轉後這會變成視覺寬度 */
-                height: 90vw !important;
-                /* 旋轉後這會變成視覺高度 */
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%) rotate(90deg);
-                transform-origin: center;
-                padding: 20px;
-                max-width: none;
-            }
-
-            #trendingChart {
-                width: 100% !important;
-                height: 100% !important;
-            }
-        }
-
-        .btn-chart i {
-            color: #ffffff !important;
-            -webkit-text-fill-color: #ffffff !important;
-            background: none !important;
-        }
+        .modal-close:hover { color: var(--apple-red); }
     </style>
 </head>
 
 <body>
     <div class="main-container">
         <div class="data-section">
-            <div class="table-card">
-                <h2>
-                    <i class="fas fa-heartbeat"></i> 血壓歷史紀錄
-                    <button class="btn btn-info" onclick="showInfoModal()">
+            <div class="card-mac table-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-heartbeat"></i> 血壓歷史紀錄</h2>
+                    <button class="btn btn-info" style="width: auto; padding: 0 16px; height: 36px; font-size: 0.85rem; margin-left: auto; margin-right: 12px;" onclick="showInfoModal()">
                         <i class="fas fa-info-circle"></i> 系統說明
                     </button>
-                    <button class="btn btn-chart" onclick="showChartModal()">
+                    <button class="btn btn-chart" style="width: auto; padding: 0 16px; height: 36px; font-size: 0.85rem;" onclick="showChartModal()">
                         <i class="fas fa-chart-line"></i> 趨勢圖
                     </button>
-                </h2>
+                </div>
                 <div class="table-wrapper">
                     <table id="dataTable">
                         <thead>
                             <tr>
-                                <th class="hide-on-mobile col-date">年</th>
-                                <th class="col-date">月</th>
-                                <th class="col-date">日</th>
-                                <th class="col-sys">高 (SYS)</th>
-                                <th class="col-dia">低 (DIA)</th>
-                                <th class="col-hr">心跳 (HR)</th>
-                                <th class="hide-on-mobile col-period">時間段</th>
-                                <th class="hide-on-mobile col-status">狀態</th>
-                                <th class="hide-on-mobile col-fulltime">完整紀錄時間</th>
+                                <th class="hide-on-mobile">年</th>
+                                <th>月</th>
+                                <th>日</th>
+                                <th>SYS</th>
+                                <th>DIA</th>
+                                <th>HR</th>
+                                <th class="hide-on-mobile">時段</th>
+                                <th class="hide-on-mobile">狀態</th>
+                                <th class="hide-on-mobile">完整時間</th>
                             </tr>
                         </thead>
-                        <tbody id="recordBody">
-                        </tbody>
+                        <tbody id="recordBody"></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
         <div class="input-section">
-            <div class="input-card">
-                <div class="form-field">
-                    <label class="form-label">收縮壓 (高)</label>
-                    <div class="form-input-wrapper">
+            <div class="card-mac input-card">
+                <div class="card-header">
+                    <h2 style="justify-content: center;">數據輸入</h2>
+                </div>
+                <div style="padding: 24px;">
+                    <div class="form-field">
+                        <label class="form-label">收縮壓 (高) <span style="font-size: 0.7rem; opacity: 0.6; margin-left: 4px;">mmHg</span></label>
                         <input type="number" id="sysInput" class="form-input" placeholder="119" autofocus>
-                        <span class="input-unit">mmHg</span>
                     </div>
-                </div>
-                <div class="form-field">
-                    <label class="form-label">舒張壓 (低)</label>
-                    <div class="form-input-wrapper">
+                    <div class="form-field">
+                        <label class="form-label">舒張壓 (低) <span style="font-size: 0.7rem; opacity: 0.6; margin-left: 4px;">mmHg</span></label>
                         <input type="number" id="diaInput" class="form-input" placeholder="81">
-                        <span class="input-unit">mmHg</span>
                     </div>
-                </div>
-                <div class="form-field">
-                    <label class="form-label">心跳</label>
-                    <div class="form-input-wrapper">
+                    <div class="form-field">
+                        <label class="form-label">心跳 <span style="font-size: 0.7rem; opacity: 0.6; margin-left: 4px;">bpm</span></label>
                         <input type="number" id="hrInput" class="form-input" placeholder="62">
-                        <span class="input-unit">bpm</span>
                     </div>
-                </div>
-                <div class="form-field"> <label class="form-label">備註狀態</label>
-                    <div class="form-input-wrapper" style="flex-direction: column; gap: 8px; align-items: stretch;">
-                        <select id="statusSelect" class="form-input" onchange="toggleCustomStatus()">
+                    <div class="form-field">
+                        <label class="form-label">狀態</label>
+                        <select id="statusSelect" class="form-input" onchange="toggleCustomStatus()" style="margin-bottom: 8px; cursor: pointer;">
                             <option value="無">無</option>
                             <option value="藥前">藥前</option>
                             <option value="藥後">藥後</option>
                             <option value="自訂">自訂</option>
                         </select>
-                        <input type="text" id="statusCustomInput" class="form-input" placeholder="請輸入自訂狀態"
-                            style="display: none;">
+                        <input type="text" id="statusCustomInput" class="form-input" placeholder="請輸入自訂狀態" style="display: none;">
                     </div>
                 </div>
             </div>
 
-            <div class="input-card">
-                <div class="btn-group">
-                    <button class="btn btn-submit" onclick="addRecord()">
-                        <i class="fas fa-check-circle"></i> <span id="submitBtnText">輸入並紀錄</span>
+            <div class="card-mac" style="padding: 24px; display: flex; flex-direction: column; gap: 14px;">
+                <button class="btn btn-submit" onclick="addRecord()">
+                    <i class="fas fa-check-circle"></i> <span id="submitBtnText">輸入並紀錄</span>
+                </button>
+                <div style="display: flex; gap: 14px;">
+                    <button class="btn btn-secondary" style="flex: 1;" onclick="toggleSelectAll()">
+                        <i class="fas fa-check-double"></i> 全選
                     </button>
-                    <div class="action-row">
-                        <button class="btn"
-                            style="background: linear-gradient(135deg, #6e7681 0%, #8b949e 100%); flex: 1;"
-                            onclick="toggleSelectAll()">
-                            <i class="fas fa-check-double"></i> 全選/取消
-                        </button>
-                        <button class="btn btn-delete" onclick="deleteSelectedRecords()" id="deleteBtn"
-                            style="flex: 1;">
-                            <i class="fas fa-trash-alt"></i> 刪除 <span id="selectedCount" style="display:none">(0)</span>
-                        </button>
-                    </div>
-                    <div class="action-row">
-                        <button class="btn btn-export" onclick="exportToCSV()">
-                            <i class="fas fa-file-download"></i> 匯出 TXT
-                        </button>
-                        <input type="file" id="csvFileInput" accept=".txt"
-                            style="position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none;"
-                            onchange="importFromCSV(event)">
-                        <label for="csvFileInput" class="btn btn-import" style="margin: 0; flex: 1;">
-                            <i class="fas fa-file-upload"></i> 匯入 TXT
-                        </label>
-                    </div>
+                    <button class="btn btn-delete" style="flex: 1;" onclick="deleteSelectedRecords()" id="deleteBtn">
+                        <i class="fas fa-trash-alt"></i> 刪除 <span id="selectedCount" style="display:none">(0)</span>
+                    </button>
+                </div>
+                <div style="display: flex; gap: 14px;">
+                    <button class="btn btn-export" style="flex: 1;" onclick="exportToCSV()">
+                        <i class="fas fa-file-download"></i> 匯出
+                    </button>
+                    <label for="csvFileInput" class="btn btn-import" style="flex: 1; margin: 0; cursor: pointer;">
+                        <i class="fas fa-file-upload"></i> 匯入
+                    </label>
+                    <input type="file" id="csvFileInput" accept=".txt" style="display: none;" onchange="importFromCSV(event)">
                 </div>
             </div>
         </div>
@@ -735,6 +373,8 @@
 
                 const highClassSys = sys >= HIGH_SYS_THRESHOLD ? ' text-high' : '';
                 const highClassDia = dia >= HIGH_DIA_THRESHOLD ? ' text-high' : '';
+                
+                const displayPeriod = r.period.includes('早') ? '早' : (r.period.includes('晚') ? '晚' : r.period.charAt(0));
 
                 const tr = document.createElement('tr');
                 tr.className = `record-row day-color-${colorToggle}`;
@@ -753,7 +393,7 @@
                     <td class="sys-val${highClassSys}">${r.sys}</td>
                     <td class="dia-val${highClassDia}">${r.dia}</td>
                     <td class="hr-val">${r.hr}</td>
-                    <td class="hide-on-mobile period-val">${r.period}</td>
+                    <td class="hide-on-mobile period-val">${displayPeriod}</td>
                     <td class="status-val hide-on-mobile">${r.status}</td>
                     <td class="hide-on-mobile fulltime-val">${r.fullTime}</td>
                 `;
@@ -846,14 +486,20 @@
             const now = new Date();
             const effectiveDate = new Date(now.getTime() - 5 * 60 * 60 * 1000);
 
+            // 用於儲存與舊版相容的「業務日期」欄位
             const year = effectiveDate.getFullYear();
             const month = String(effectiveDate.getMonth() + 1).padStart(2, '0');
             const day = String(effectiveDate.getDate()).padStart(2, '0');
+            
+            // 用於儲存「真實時間與日期」
+            const actualYear = now.getFullYear();
+            const actualMonth = String(now.getMonth() + 1).padStart(2, '0');
+            const actualDay = String(now.getDate()).padStart(2, '0');
             const hour = String(now.getHours()).padStart(2, '0');
             const minute = String(now.getMinutes()).padStart(2, '0');
 
             const period = getTimePeriod(now.getHours());
-            const fullTimeStr = `${now.getFullYear()}/${month}/${day} ${hour}:${minute}`;
+            const fullTimeStr = `${actualYear}/${actualMonth}/${actualDay} ${hour}:${minute}`;
 
             if (selectedIndices.size === 1) {
                 // 修改現有紀錄
