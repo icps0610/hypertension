@@ -596,7 +596,7 @@
             <div class="input-card">
                 <div class="btn-group">
                     <button class="btn btn-submit" onclick="addRecord()">
-                        <i class="fas fa-check-circle"></i> 輸入並紀錄
+                        <i class="fas fa-check-circle"></i> <span id="submitBtnText">輸入並紀錄</span>
                     </button>
                     <div class="action-row">
                         <button class="btn" style="background: linear-gradient(135deg, #6e7681 0%, #8b949e 100%); flex: 1;" onclick="toggleSelectAll()">
@@ -631,8 +631,7 @@
         let selectedIndices = new Set(); // 儲存選取的索引
 
         function getTimePeriod(hour) {
-            if (hour >= 5 && hour < 12) return '早上';
-            if (hour >= 12 && hour < 18) return '下午';
+            if (hour >= 5 && hour < 18) return '早上';
             return '晚上';
         }
 
@@ -671,8 +670,8 @@
                 const effectiveDate = new Date(actualDate.getTime() - 3 * 60 * 60 * 1000);
                 
                 const dY = effectiveDate.getFullYear();
-                const dM = effectiveDate.getMonth() + 1;
-                const dD = effectiveDate.getDate();
+                const dM = String(effectiveDate.getMonth() + 1).padStart(2, '0');
+                const dD = String(effectiveDate.getDate()).padStart(2, '0');
                 const dateStr = `${dY}-${dM}-${dD}`;
 
                 if (currentDateStr !== dateStr) {
@@ -721,6 +720,36 @@
                 selectedIndices.add(index);
                 trElement.classList.add('selected');
             }
+
+            const submitBtnText = document.getElementById('submitBtnText');
+            const submitBtn = submitBtnText.parentElement;
+
+            if (selectedIndices.size === 1) {
+                // 載入數值以便修改
+                const idx = Array.from(selectedIndices)[0];
+                const r = recordsData[idx];
+                document.getElementById('sysInput').value = r.sys;
+                document.getElementById('diaInput').value = r.dia;
+                document.getElementById('hrInput').value = r.hr;
+                
+                const statusSelect = document.getElementById('statusSelect');
+                const statusCustomInput = document.getElementById('statusCustomInput');
+                const options = Array.from(statusSelect.options).map(o => o.value);
+                if (options.includes(r.status)) {
+                    statusSelect.value = r.status;
+                    statusCustomInput.style.display = 'none';
+                } else {
+                    statusSelect.value = '自訂';
+                    statusCustomInput.style.display = 'block';
+                    statusCustomInput.value = r.status;
+                }
+                submitBtnText.textContent = '更新此紀錄';
+                submitBtn.style.background = 'linear-gradient(135deg, #8957e5 0%, #b392f0 100%)';
+            } else {
+                submitBtnText.textContent = '輸入並紀錄';
+                submitBtn.style.background = ''; // 恢復原色
+            }
+
             updateDeleteButton();
         }
 
@@ -769,25 +798,40 @@
             const effectiveDate = new Date(now.getTime() - 3 * 60 * 60 * 1000);
             
             const year = effectiveDate.getFullYear();
-            const month = effectiveDate.getMonth() + 1;
-            const day = effectiveDate.getDate();
+            const month = String(effectiveDate.getMonth() + 1).padStart(2, '0');
+            const day = String(effectiveDate.getDate()).padStart(2, '0');
             const hour = String(now.getHours()).padStart(2, '0');
             const minute = String(now.getMinutes()).padStart(2, '0');
 
             const period = getTimePeriod(now.getHours());
-            const fullTimeStr = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()} ${hour}:${minute}`;
+            const fullTimeStr = `${now.getFullYear()}/${month}/${day} ${hour}:${minute}`;
 
-            recordsData.push({
-                year: year.toString(),
-                month: month.toString(),
-                day: day.toString(),
-                sys: sys.toString(),
-                dia: dia.toString(),
-                hr: hr.toString(),
-                period: period,
-                status: status,
-                fullTime: fullTimeStr
-            });
+            if (selectedIndices.size === 1) {
+                // 修改現有紀錄
+                const idx = Array.from(selectedIndices)[0];
+                recordsData[idx].sys = sys.toString();
+                recordsData[idx].dia = dia.toString();
+                recordsData[idx].hr = hr.toString();
+                recordsData[idx].status = status;
+                selectedIndices.clear();
+                
+                const submitBtnText = document.getElementById('submitBtnText');
+                submitBtnText.textContent = '輸入並紀錄';
+                submitBtnText.parentElement.style.background = '';
+            } else {
+                // 新增紀錄
+                recordsData.push({
+                    year: year.toString(),
+                    month: month,
+                    day: day,
+                    sys: sys.toString(),
+                    dia: dia.toString(),
+                    hr: hr.toString(),
+                    period: period,
+                    status: status,
+                    fullTime: fullTimeStr
+                });
+            }
 
             document.getElementById('sysInput').value = '';
             document.getElementById('diaInput').value = '';
@@ -954,53 +998,31 @@
                 
                 const dayRecords = grouped[dateKey] || [];
                 
-                // 早上與晚上數據判定邏輯
-                const sortedDays = [...dayRecords].sort((a,b) => a.actualTime - b.actualTime);
-                
-                // 1. 優先尋找標註有「藥前」的紀錄作為早上點
-                let morningRec = sortedDays.find(r => r.status && r.status.startsWith('藥前'));
-                
-                // 2. 決定晚上點 (預設為最後一筆)
-                let nightRec = sortedDays.length > 0 ? sortedDays[sortedDays.length - 1] : null;
+                // 依時段分組處理 (處理舊資料時將「下午」併入「早上」)
+                const sortedDayRecs = [...dayRecords].sort((a,b) => a.actualTime - b.actualTime);
+                const morningRecs = sortedDayRecs.filter(r => r.period === '早上' || r.period === '下午');
+                const eveningRecs = sortedDayRecs.filter(r => r.period === '晚上');
 
-                // 3. 備援：若無「藥前」標籤
-                if (!morningRec && sortedDays.length > 0) {
-                    if (sortedDays.length === 1) {
-                        // 只有一筆紀錄時：6 點以前歸為早上，以後歸為晚上
-                        const hr = sortedDays[0].actualTime.getHours();
-                        if (hr < 6) {
-                            morningRec = sortedDays[0];
-                        } else {
-                            morningRec = null; // 此時 nightRec 為這唯一一筆
-                        }
-                    } else {
-                        // 多筆紀錄時：自動取第一筆為早上點
-                        morningRec = sortedDays[0];
-                    }
-                }
-
-                // 1. 決定早上數據點
+                // 處理早上點：取該時段最早兩筆平均 (若只有一筆則直接記錄)
                 labels.push(`${displayDateStr} 早上`);
-                if (morningRec) {
-                    sysData.push(parseInt(morningRec.sys));
-                    diaData.push(parseInt(morningRec.dia));
-                    hrData.push(parseInt(morningRec.hr));
+                if (morningRecs.length > 0) {
+                    const mTarget = morningRecs.slice(0, 2);
+                    sysData.push(Math.round(mTarget.reduce((s, r) => s + parseInt(r.sys), 0) / mTarget.length));
+                    diaData.push(Math.round(mTarget.reduce((s, r) => s + parseInt(r.dia), 0) / mTarget.length));
+                    hrData.push(Math.round(mTarget.reduce((s, r) => s + parseInt(r.hr), 0) / mTarget.length));
                 } else {
-                    sysData.push(null);
-                    diaData.push(null);
-                    hrData.push(null);
+                    sysData.push(null); diaData.push(null); hrData.push(null);
                 }
 
-                // 2. 決定晚上數據點 (若與早上同一筆則不重複顯示)
+                // 處理晚上點：取該時段最晚兩筆平均 (若只有一筆則直接記錄)
                 labels.push(`${displayDateStr} 晚上`);
-                if (nightRec && nightRec !== morningRec) {
-                    sysData.push(parseInt(nightRec.sys));
-                    diaData.push(parseInt(nightRec.dia));
-                    hrData.push(parseInt(nightRec.hr));
+                if (eveningRecs.length > 0) {
+                    const eTarget = eveningRecs.slice(-2);
+                    sysData.push(Math.round(eTarget.reduce((s, r) => s + parseInt(r.sys), 0) / eTarget.length));
+                    diaData.push(Math.round(eTarget.reduce((s, r) => s + parseInt(r.dia), 0) / eTarget.length));
+                    hrData.push(Math.round(eTarget.reduce((s, r) => s + parseInt(r.hr), 0) / eTarget.length));
                 } else {
-                    sysData.push(null);
-                    diaData.push(null);
-                    hrData.push(null);
+                    sysData.push(null); diaData.push(null); hrData.push(null);
                 }
             }
 
