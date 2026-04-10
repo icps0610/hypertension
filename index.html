@@ -667,7 +667,7 @@
 
             recordsData.forEach((r, index) => {
                 const actualDate = new Date(r.fullTime.replace(/\//g, '-'));
-                const effectiveDate = new Date(actualDate.getTime() - 3 * 60 * 60 * 1000);
+                const effectiveDate = new Date(actualDate.getTime() - 5 * 60 * 60 * 1000);
                 
                 const dY = effectiveDate.getFullYear();
                 const dM = String(effectiveDate.getMonth() + 1).padStart(2, '0');
@@ -795,7 +795,7 @@
             }
 
             const now = new Date();
-            const effectiveDate = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+            const effectiveDate = new Date(now.getTime() - 5 * 60 * 60 * 1000);
             
             const year = effectiveDate.getFullYear();
             const month = String(effectiveDate.getMonth() + 1).padStart(2, '0');
@@ -974,7 +974,7 @@
             const grouped = {};
             recordsData.forEach(r => {
                 const actualTime = new Date(r.fullTime);
-                const effectiveDate = new Date(actualTime.getTime() - 3 * 60 * 60 * 1000);
+                const effectiveDate = new Date(actualTime.getTime() - 5 * 60 * 60 * 1000);
                 const dateKey = `${effectiveDate.getFullYear()}-${effectiveDate.getMonth() + 1}-${effectiveDate.getDate()}`;
                 
                 if (!grouped[dateKey]) grouped[dateKey] = [];
@@ -988,7 +988,7 @@
 
             // 從今天業務日期回推 7 天
             const now = new Date();
-            const todayBusinessPoint = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+            const todayBusinessPoint = new Date(now.getTime() - 5 * 60 * 60 * 1000);
             
             for (let i = 6; i >= 0; i--) {
                 const targetDay = new Date(todayBusinessPoint.getTime());
