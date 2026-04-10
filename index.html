@@ -203,13 +203,14 @@
 
         @media (max-width: 900px) and (orientation: portrait) {
             #chartModal .modal-content {
-                width: min(90vh, 180vw) !important;
+                width: min(85vh, 180vw) !important;
                 height: 90vw !important;
                 max-width: none !important;
                 transform: rotate(90deg);
                 padding: 20px;
                 display: flex;
                 flex-direction: column;
+                flex-shrink: 0;
             }
             .chart-container {
                 flex: 1;
