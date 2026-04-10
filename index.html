@@ -934,7 +934,7 @@
     <div id="chartModal" class="modal-overlay">
         <div class="modal-content">
             <span class="modal-close" onclick="closeChartModal()">&times;</span>
-            <h2 style="margin-bottom: 24px; color: var(--text-color);"><i class="fas fa-chart-area"></i> 最近七天血壓趨勢 <span
+            <h2 style="margin-bottom: 42px; color: var(--text-color);"><i class="fas fa-chart-area"></i> 最近七天血壓趨勢 <span
                     style="font-size: 0.7rem; color: var(--text-secondary);"></span></h2>
             <div class="chart-container" id="chartWrapper">
                 <canvas id="trendingChart"></canvas>
@@ -1095,7 +1095,7 @@
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
                         legend: {
-                            position: 'top',
+                            position: 'bottom',
                             labels: { color: '#c9d1d9', font: { size: isPC ? 14 : 12, family: 'Noto Sans TC' } }
                         },
                         tooltip: {
