@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>血壓紀錄系統</title>
     <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩸</text></svg>">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩸</text></svg>">
     <style>
         :root {
             --danger-color: #f85149;
@@ -35,9 +39,11 @@
             0% {
                 outline-color: rgba(248, 81, 73, 1);
             }
+
             50% {
                 outline-color: rgba(248, 81, 73, 0.4);
             }
+
             100% {
                 outline-color: rgba(248, 81, 73, 1);
             }
@@ -126,10 +132,12 @@
             z-index: 10;
         }
 
-        th, td {
+        th,
+        td {
             border-bottom: 1px solid var(--border-color);
             padding: 14px 10px;
-            vertical-align: middle; /* 垂直居中 */
+            vertical-align: middle;
+            /* 垂直居中 */
         }
 
         th {
@@ -141,15 +149,25 @@
         }
 
         /* 數值欄位的標題與內容統一靠右對齊 */
-        .col-sys, .col-dia, .col-hr, .col-fulltime,
-        td.sys-val, td.dia-val, td.hr-val, td.fulltime-val {
+        .col-sys,
+        .col-dia,
+        .col-hr,
+        .col-fulltime,
+        td.sys-val,
+        td.dia-val,
+        td.hr-val,
+        td.fulltime-val {
             text-align: right !important;
             padding-right: 24px !important;
         }
 
         /* 日期與狀態欄位統一居中 */
-        .col-date, .col-period, .col-status,
-        td.date-val, td.period-val, td.status-val {
+        .col-date,
+        .col-period,
+        .col-status,
+        td.date-val,
+        td.period-val,
+        td.status-val {
             text-align: center !important;
         }
 
@@ -159,7 +177,8 @@
 
         .record-row {
             transition: var(--transition);
-            cursor: pointer; /* 加上游標樣式提示可點擊 */
+            cursor: pointer;
+            /* 加上游標樣式提示可點擊 */
         }
 
         .record-row:hover {
@@ -237,7 +256,8 @@
         .form-input {
             width: 100%;
             padding: 14px 18px;
-            padding-right: 70px; /* 增加右側內距，為單位留出空間 */
+            padding-right: 70px;
+            /* 增加右側內距，為單位留出空間 */
             font-size: 1.1rem;
             background-color: var(--bg-color);
             border: 1px solid var(--border-color);
@@ -252,7 +272,8 @@
         .form-input::-webkit-outer-spin-button,
         .form-input::-webkit-inner-spin-button {
             -webkit-appearance: none;
-            appearance: none; /* 加入標準屬性 */
+            appearance: none;
+            /* 加入標準屬性 */
             margin: 0;
         }
 
@@ -294,7 +315,8 @@
         /* 漸層與陰影按鈕 (不再限定於 button 標籤) */
         .btn {
             width: 100%;
-            height: 54px; /* 固定高度確保對齊 */
+            height: 54px;
+            /* 固定高度確保對齊 */
             padding: 0 16px;
             font-size: 0.95rem;
             font-weight: 600;
@@ -311,7 +333,8 @@
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
             box-sizing: border-box;
             user-select: none;
-            white-space: nowrap; /* 防止文字折行導致高度不一 */
+            white-space: nowrap;
+            /* 防止文字折行導致高度不一 */
         }
 
         .btn i {
@@ -390,7 +413,8 @@
             }
 
             .input-section {
-                order: 1; /* 改為 1，讓 data-section (order 預設 0) 在手機模式下排在最上方 */
+                order: 1;
+                /* 改為 1，讓 data-section (order 預設 0) 在手機模式下排在最上方 */
             }
 
             .input-card {
@@ -406,7 +430,8 @@
                 /* 增加一點高度 */
             }
 
-            th, td {
+            th,
+            td {
                 padding: 12px 6px;
                 font-size: 0.9rem;
             }
@@ -430,21 +455,24 @@
                 font-size: 0.95rem;
             }
         }
-        
+
         .input-section .input-card:last-child {
             margin-top: auto;
         }
-        
+
         /* 修改此處，加入均分設定 */
         .input-section .input-card:first-child {
             flex: 1;
-            justify-content: space-evenly; 
+            justify-content: space-evenly;
         }
 
         /* 趨勢圖浮動視窗樣式 */
         .modal-overlay {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(8px);
             display: none;
@@ -464,14 +492,15 @@
             padding: 30px;
             position: relative;
             border: 1px solid var(--border-color);
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
             display: flex;
             flex-direction: column;
         }
 
         .modal-close {
             position: absolute;
-            top: 20px; right: 20px;
+            top: 20px;
+            right: 20px;
             font-size: 24px;
             color: var(--text-secondary);
             cursor: pointer;
@@ -482,15 +511,24 @@
             color: var(--danger-color);
         }
 
-        .btn-chart {
-            background: linear-gradient(135deg, #2ea043 0%, #3fb950 100%);
+        .btn-chart,
+        .btn-info {
             width: auto !important;
             padding: 8px 16px !important;
             font-size: 0.85rem !important;
-            margin-left: auto;
             height: auto !important;
             color: #ffffff !important;
-            -webkit-text-fill-color: #ffffff !important; /* 強制覆蓋標題的透明設定 */
+            -webkit-text-fill-color: #ffffff !important;
+        }
+
+        .btn-chart {
+            background: linear-gradient(135deg, #2ea043 0%, #3fb950 100%);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #1f6feb 0%, #58a6ff 100%);
+            margin-left: auto;
+            margin-right: 10px;
         }
 
         .chart-container {
@@ -502,8 +540,10 @@
         /* 手機強制橫向模式 (旋轉 90 度) */
         @media (max-width: 900px) {
             .modal-content {
-                width: 85vh !important;   /* 旋轉後這會變成視覺寬度 */
-                height: 90vw !important;  /* 旋轉後這會變成視覺高度 */
+                width: 85vh !important;
+                /* 旋轉後這會變成視覺寬度 */
+                height: 90vw !important;
+                /* 旋轉後這會變成視覺高度 */
                 position: fixed;
                 top: 50%;
                 left: 50%;
@@ -512,6 +552,7 @@
                 padding: 20px;
                 max-width: none;
             }
+
             #trendingChart {
                 width: 100% !important;
                 height: 100% !important;
@@ -525,12 +566,16 @@
         }
     </style>
 </head>
+
 <body>
     <div class="main-container">
         <div class="data-section">
             <div class="table-card">
                 <h2>
                     <i class="fas fa-heartbeat"></i> 血壓歷史紀錄
+                    <button class="btn btn-info" onclick="showInfoModal()">
+                        <i class="fas fa-info-circle"></i> 系統說明
+                    </button>
                     <button class="btn btn-chart" onclick="showChartModal()">
                         <i class="fas fa-chart-line"></i> 趨勢圖
                     </button>
@@ -588,7 +633,8 @@
                             <option value="藥後">藥後</option>
                             <option value="自訂">自訂</option>
                         </select>
-                        <input type="text" id="statusCustomInput" class="form-input" placeholder="請輸入自訂狀態" style="display: none;">
+                        <input type="text" id="statusCustomInput" class="form-input" placeholder="請輸入自訂狀態"
+                            style="display: none;">
                     </div>
                 </div>
             </div>
@@ -599,10 +645,13 @@
                         <i class="fas fa-check-circle"></i> <span id="submitBtnText">輸入並紀錄</span>
                     </button>
                     <div class="action-row">
-                        <button class="btn" style="background: linear-gradient(135deg, #6e7681 0%, #8b949e 100%); flex: 1;" onclick="toggleSelectAll()">
+                        <button class="btn"
+                            style="background: linear-gradient(135deg, #6e7681 0%, #8b949e 100%); flex: 1;"
+                            onclick="toggleSelectAll()">
                             <i class="fas fa-check-double"></i> 全選/取消
                         </button>
-                        <button class="btn btn-delete" onclick="deleteSelectedRecords()" id="deleteBtn" style="flex: 1;">
+                        <button class="btn btn-delete" onclick="deleteSelectedRecords()" id="deleteBtn"
+                            style="flex: 1;">
                             <i class="fas fa-trash-alt"></i> 刪除 <span id="selectedCount" style="display:none">(0)</span>
                         </button>
                     </div>
@@ -668,7 +717,7 @@
             recordsData.forEach((r, index) => {
                 const actualDate = new Date(r.fullTime.replace(/\//g, '-'));
                 const effectiveDate = new Date(actualDate.getTime() - 5 * 60 * 60 * 1000);
-                
+
                 const dY = effectiveDate.getFullYear();
                 const dM = String(effectiveDate.getMonth() + 1).padStart(2, '0');
                 const dD = String(effectiveDate.getDate()).padStart(2, '0');
@@ -692,8 +741,8 @@
                 if (index === 0) {
                     tr.classList.add('latest-record');
                 }
-                
-                tr.onclick = function() {
+
+                tr.onclick = function () {
                     toggleSelection(index, this);
                 };
 
@@ -731,7 +780,7 @@
                 document.getElementById('sysInput').value = r.sys;
                 document.getElementById('diaInput').value = r.dia;
                 document.getElementById('hrInput').value = r.hr;
-                
+
                 const statusSelect = document.getElementById('statusSelect');
                 const statusCustomInput = document.getElementById('statusCustomInput');
                 const options = Array.from(statusSelect.options).map(o => o.value);
@@ -755,7 +804,7 @@
 
         function toggleSelectAll() {
             if (recordsData.length === 0) return;
-            
+
             if (selectedIndices.size === recordsData.length) {
                 // 全取消
                 selectedIndices.clear();
@@ -780,11 +829,11 @@
             const sys = document.getElementById('sysInput').value;
             const dia = document.getElementById('diaInput').value;
             const hr = document.getElementById('hrInput').value;
-            
+
             const statusSelect = document.getElementById('statusSelect');
             const statusCustomInput = document.getElementById('statusCustomInput');
             let status = statusSelect.value;
-            
+
             if (status === '自訂') {
                 status = statusCustomInput.value || '無';
             }
@@ -796,7 +845,7 @@
 
             const now = new Date();
             const effectiveDate = new Date(now.getTime() - 5 * 60 * 60 * 1000);
-            
+
             const year = effectiveDate.getFullYear();
             const month = String(effectiveDate.getMonth() + 1).padStart(2, '0');
             const day = String(effectiveDate.getDate()).padStart(2, '0');
@@ -814,7 +863,7 @@
                 recordsData[idx].hr = hr.toString();
                 recordsData[idx].status = status;
                 selectedIndices.clear();
-                
+
                 const submitBtnText = document.getElementById('submitBtnText');
                 submitBtnText.textContent = '輸入並紀錄';
                 submitBtnText.parentElement.style.background = '';
@@ -836,12 +885,12 @@
             document.getElementById('sysInput').value = '';
             document.getElementById('diaInput').value = '';
             document.getElementById('hrInput').value = '';
-            
+
             document.getElementById('statusSelect').value = '無';
             const statusCustomInputReset = document.getElementById('statusCustomInput');
             statusCustomInputReset.value = '';
             statusCustomInputReset.style.display = 'none';
-            
+
             if (window.innerWidth > 900) {
                 document.getElementById('sysInput').focus();
             }
@@ -945,10 +994,45 @@
             loadFromStorage();
         };
     </script>
+    <div id="infoModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="modal-close" onclick="closeInfoModal()">&times;</span>
+            <h2 style="margin-bottom: 24px; color: var(--text-color);"><i class="fas fa-info-circle"></i> 系統使用說明</h2>
+            <div style="color: var(--text-color); line-height: 1.8; font-size: 0.95rem;">
+                <p style="margin-bottom: 12px; color: #58a6ff; font-weight: 600;">⏰ 業務日期與時段</p>
+                <ul style="margin-left: 20px; margin-bottom: 20px;">
+                    <li><b>日期切換</b>：以凌晨 05:00 為準。05:00 以前的紀錄屬前一日。</li>
+                    <li><b>早上時段</b>：05:00 ~ 17:59。</li>
+                    <li><b>晚上時段</b>：18:00 ~ 04:59。</li>
+                </ul>
+
+                <p style="margin-bottom: 12px; color: #3fb950; font-weight: 600;">📊 趨勢圖計算規則</p>
+                <ul style="margin-left: 20px; margin-bottom: 20px;">
+                    <li><b>平均邏輯</b>：早上取該時段「最早兩筆」平均；晚上則取「最晚兩筆」。</li>
+                    <li><b>單筆處理</b>：若時段內僅有一筆紀錄，則直接採用該筆數值。</li>
+                </ul>
+
+                <p style="margin-bottom: 12px; color: #f85149; font-weight: 600;">📝 操作小技巧</p>
+                <ul style="margin-left: 20px; margin-bottom: 20px;">
+                    <li><b>修改紀錄</b>：直接點擊列表中的紀錄，即可載入數值進行修改。</li>
+                    <li><b>高血壓提醒</b>：數值超過 140/90 mmHg 會以紅色標示。</li>
+                </ul>
+
+                <p style="margin-bottom: 12px; color: #8957e5; font-weight: 600;">💾 資料備份與安全性</p>
+                <ul style="margin-left: 20px;">
+                    <li><b>匯出 TXT</b>：將所有紀錄匯出為 CSV 格式的 TXT 檔案。</li>
+                    <li><b>匯入 TXT</b>：支援備份檔案重新匯入，方便跨裝置同步。</li>
+                    <li><b>本地儲存</b>：所有數據皆儲存於瀏覽器本地 (localStorage)，資料不外傳，兼顧隱私與穩定。</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
     <div id="chartModal" class="modal-overlay">
         <div class="modal-content">
             <span class="modal-close" onclick="closeChartModal()">&times;</span>
-            <h2 style="margin-bottom: 24px; color: var(--text-color);"><i class="fas fa-chart-area"></i> 最近七天血壓趨勢 <span style="font-size: 0.7rem; color: var(--text-secondary);">(手機可橫向滑動)</span></h2>
+            <h2 style="margin-bottom: 24px; color: var(--text-color);"><i class="fas fa-chart-area"></i> 最近七天血壓趨勢 <span
+                    style="font-size: 0.7rem; color: var(--text-secondary);">(手機可橫向滑動)</span></h2>
             <div class="chart-container" id="chartWrapper">
                 <canvas id="trendingChart"></canvas>
             </div>
@@ -957,6 +1041,14 @@
 
     <script>
         let myChart = null;
+
+        function showInfoModal() {
+            document.getElementById('infoModal').style.display = 'flex';
+        }
+
+        function closeInfoModal() {
+            document.getElementById('infoModal').style.display = 'none';
+        }
 
         function closeChartModal() {
             document.getElementById('chartModal').style.display = 'none';
@@ -967,7 +1059,7 @@
                 alert('尚無資料可顯示趨勢圖。');
                 return;
             }
-            
+
             document.getElementById('chartModal').style.display = 'flex';
 
             // 1. 資料處理：產生最近七天（從今天回推）的完整日期
@@ -976,7 +1068,7 @@
                 const actualTime = new Date(r.fullTime);
                 const effectiveDate = new Date(actualTime.getTime() - 5 * 60 * 60 * 1000);
                 const dateKey = `${effectiveDate.getFullYear()}-${effectiveDate.getMonth() + 1}-${effectiveDate.getDate()}`;
-                
+
                 if (!grouped[dateKey]) grouped[dateKey] = [];
                 grouped[dateKey].push({ ...r, actualTime });
             });
@@ -989,17 +1081,17 @@
             // 從今天業務日期回推 7 天
             const now = new Date();
             const todayBusinessPoint = new Date(now.getTime() - 5 * 60 * 60 * 1000);
-            
+
             for (let i = 6; i >= 0; i--) {
                 const targetDay = new Date(todayBusinessPoint.getTime());
                 targetDay.setDate(todayBusinessPoint.getDate() - i);
                 const dateKey = `${targetDay.getFullYear()}-${targetDay.getMonth() + 1}-${targetDay.getDate()}`;
                 const displayDateStr = `${targetDay.getMonth() + 1}/${targetDay.getDate()}`;
-                
+
                 const dayRecords = grouped[dateKey] || [];
-                
+
                 // 依時段分組處理 (處理舊資料時將「下午」併入「早上」)
-                const sortedDayRecs = [...dayRecords].sort((a,b) => a.actualTime - b.actualTime);
+                const sortedDayRecs = [...dayRecords].sort((a, b) => a.actualTime - b.actualTime);
                 const morningRecs = sortedDayRecs.filter(r => r.period === '早上' || r.period === '下午');
                 const eveningRecs = sortedDayRecs.filter(r => r.period === '晚上');
 
@@ -1103,15 +1195,15 @@
                             borderWidth: 1,
                             padding: 12,
                             callbacks: {
-                                label: function(context) {
-                                    return `${context.dataset.label}: ${context.parsed.y} ${context.dataset.label.includes('心跳')?'bpm':'mmHg'}`;
+                                label: function (context) {
+                                    return `${context.dataset.label}: ${context.parsed.y} ${context.dataset.label.includes('心跳') ? 'bpm' : 'mmHg'}`;
                                 }
                             }
                         }
                     },
                     scales: {
                         x: {
-                            ticks: { 
+                            ticks: {
                                 color: (ctx) => tickColors[ctx.index],
                                 font: { family: 'Noto Sans TC', size: isPC ? 12 : 10 }
                             },
@@ -1127,4 +1219,5 @@
         }
     </script>
 </body>
+
 </html>
