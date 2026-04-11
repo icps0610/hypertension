@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>血壓紀錄系統</title>
-    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
     <link
         href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap"
         rel="stylesheet">
@@ -15,6 +14,7 @@
         href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩸</text></svg>">
     <style>
         :root {
+            color-scheme: dark;
             --apple-blue: #007aff;
             --apple-green: #34c759;
             --apple-red: #ff3b30;
@@ -249,6 +249,11 @@
         .form-input:focus {
             border-color: var(--apple-blue);
             background: rgba(255, 255, 255, 0.1);
+        }
+
+        .form-input option {
+            background-color: #1c1c1e;
+            color: #fff;
         }
 
         .btn {
